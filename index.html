@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Comprehension Hub</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --blue: #4f8cff;
+    --blue-light: #e8f0ff;
+    --purple: #7c5cfc;
+    --purple-light: #f0ecff;
+    --orange: #ff8a3d;
+    --orange-light: #fff3ea;
+    --green: #2bc88f;
+    --green-light: #e5faf1;
+    --pink: #ff6b9d;
+    --pink-light: #fff0f5;
+    --text: #1e293b;
+    --text-light: #64748b;
+    --bg: #f8faff;
+    --card: #ffffff;
+    --border: #e2e8f0;
+    --radius: 16px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.06);
+    --shadow-lg: 0 4px 6px rgba(0,0,0,0.04), 0 10px 24px rgba(0,0,0,0.08);
+    --shadow-hover: 0 8px 16px rgba(0,0,0,0.08), 0 16px 32px rgba(0,0,0,0.1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, #4f8cff 0%, #7c5cfc 50%, #ff6b9d 100%);
+    padding: 60px 24px 80px;
+    text-align: center;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.12) 0%, transparent 60%),
+                radial-gradient(circle at 70% 80%, rgba(255,255,255,0.08) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .hero-content { position: relative; max-width: 720px; margin: 0 auto; }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: 2.8rem;
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 16px;
+    letter-spacing: -0.02em;
+  }
+  .hero p {
+    font-size: 1.15rem;
+    opacity: 0.92;
+    max-width: 560px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  /* WAVE */
+  .wave-divider {
+    margin-top: -2px;
+    background: var(--bg);
+  }
+  .wave-divider svg {
+    display: block;
+    width: 100%;
+    height: 60px;
+  }
+
+  /* CONTAINER */
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* TOOLS SECTION */
+  .tools-section {
+    margin-top: -40px;
+    padding-bottom: 48px;
+    position: relative;
+    z-index: 10;
+  }
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+  .tool-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 32px 28px;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .tool-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+  }
+  .tool-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+  }
+  .tool-card.blue::before { background: linear-gradient(90deg, var(--blue), #6ba3ff); }
+  .tool-card.purple::before { background: linear-gradient(90deg, var(--purple), #9b82ff); }
+  .tool-card.green::before { background: linear-gradient(90deg, var(--green), #5de0b0); }
+
+  .tool-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    margin-bottom: 18px;
+  }
+  .tool-card.blue .tool-icon { background: var(--blue-light); }
+  .tool-card.purple .tool-icon { background: var(--purple-light); }
+  .tool-card.green .tool-icon { background: var(--green-light); }
+
+  .tool-card h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .tool-card p {
+    font-size: 0.95rem;
+    color: var(--text-light);
+    flex: 1;
+    margin-bottom: 16px;
+  }
+  .tool-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+  .tool-card.blue .tool-link { color: var(--blue); }
+  .tool-card.purple .tool-link { color: var(--purple); }
+  .tool-card.green .tool-link { color: var(--green); }
+  .tool-link .arrow { transition: transform 0.2s; }
+  .tool-card:hover .tool-link .arrow { transform: translateX(4px); }
+
+  /* LIBRARY SECTION */
+  .section-header {
+    text-align: center;
+    padding: 48px 0 32px;
+  }
+  .section-header h2 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .section-header p {
+    color: var(--text-light);
+    font-size: 1.05rem;
+  }
+
+  .library-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    padding-bottom: 48px;
+  }
+  .library-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+    color: var(--text);
+    display: block;
+    position: relative;
+  }
+  .library-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+  }
+  .library-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+  }
+  .tag-naplan { background: var(--blue-light); color: var(--blue); }
+  .tag-comprehension { background: var(--orange-light); color: var(--orange); }
+  .tag-new { background: var(--pink-light); color: var(--pink); }
+
+  .library-card h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .library-card .meta {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-bottom: 12px;
+  }
+  .library-card .meta span {
+    margin-right: 12px;
+  }
+  .start-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: white;
+    background: var(--blue);
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .start-btn:hover { background: #3d7aee; }
+
+  .empty-library {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-light);
+    grid-column: 1 / -1;
+  }
+  .empty-library .empty-icon {
+    font-size: 3rem;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+
+  /* HOW IT WORKS */
+  .how-section {
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 40px 36px;
+    margin-bottom: 48px;
+    box-shadow: var(--shadow);
+  }
+  .how-section h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 28px;
+    text-align: center;
+  }
+  .steps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px;
+  }
+  .step-card {
+    text-align: center;
+    padding: 20px 16px;
+  }
+  .step-num {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: white;
+    margin-bottom: 14px;
+  }
+  .step-card:nth-child(1) .step-num { background: var(--blue); }
+  .step-card:nth-child(2) .step-num { background: var(--purple); }
+  .step-card:nth-child(3) .step-num { background: var(--orange); }
+  .step-card:nth-child(4) .step-num { background: var(--green); }
+
+  .step-card h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .step-card p {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    line-height: 1.6;
+  }
+
+  /* TEACHER ZONE (small subtle link area) */
+  .teacher-zone {
+    background: linear-gradient(135deg, #f0ecff 0%, #e8f0ff 100%);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 28px 32px;
+    margin-bottom: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .teacher-zone-text h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .teacher-zone-text p {
+    font-size: 0.9rem;
+    color: var(--text-light);
+  }
+  .teacher-zone-links {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .tz-link {
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.15s;
+    border: 2px solid transparent;
+  }
+  .tz-link.primary {
+    background: var(--purple);
+    color: white;
+  }
+  .tz-link.primary:hover { background: #6a4ae0; }
+  .tz-link.secondary {
+    background: white;
+    color: var(--purple);
+    border-color: var(--purple);
+  }
+  .tz-link.secondary:hover { background: var(--purple-light); }
+
+  /* FOOTER */
+  .footer {
+    text-align: center;
+    padding: 32px 24px;
+    color: var(--text-light);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* MODAL for adding tests */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 36px;
+    max-width: 520px;
+    width: 100%;
+    box-shadow: var(--shadow-lg);
+  }
+  .modal h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+  .modal label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+  .modal input, .modal select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    font-size: 1rem;
+    font-family: inherit;
+    margin-bottom: 16px;
+    transition: border-color 0.15s;
+  }
+  .modal input:focus, .modal select:focus {
+    border-color: var(--purple);
+    outline: none;
+  }
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 8px;
+  }
+  .modal-btn {
+    padding: 10px 24px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .modal-btn.cancel {
+    background: #f1f5f9;
+    color: var(--text);
+  }
+  .modal-btn.cancel:hover { background: #e2e8f0; }
+  .modal-btn.save {
+    background: var(--purple);
+    color: white;
+  }
+  .modal-btn.save:hover { background: #6a4ae0; }
+
+  /* ADD BUTTON */
+  .add-test-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 24px;
+    border: 2px dashed var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-light);
+    min-height: 160px;
+  }
+  .add-test-card:hover {
+    border-color: var(--purple);
+    color: var(--purple);
+    background: var(--purple-light);
+  }
+  .add-test-card .plus {
+    font-size: 2rem;
+    font-weight: 300;
+    line-height: 1;
+  }
+  .add-test-card span {
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  /* DELETE BTN */
+  .delete-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: none;
+    background: #fee2e2;
+    color: #ef4444;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+  }
+  .library-card:hover .delete-btn { display: flex; }
+  .delete-btn:hover { background: #fecaca; }
+
+  @media (max-width: 640px) {
+    .hero h1 { font-size: 2rem; }
+    .hero { padding: 40px 20px 60px; }
+    .tools-grid { grid-template-columns: 1fr; }
+    .steps-grid { grid-template-columns: 1fr 1fr; }
+    .teacher-zone { flex-direction: column; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">Reading Comprehension Practice</div>
+    <h1>Comprehension Hub</h1>
+    <p>Interactive online reading tests with instant marking and detailed results. Upload any comprehension paper and turn it into an online assessment.</p>
+  </div>
+</div>
+<div class="wave-divider">
+  <svg viewBox="0 0 1200 60" preserveAspectRatio="none">
+    <path d="M0,0 C300,60 900,0 1200,40 L1200,0 L0,0 Z" fill="#7c5cfc"/>
+    <path d="M0,20 C400,80 800,0 1200,50 L1200,0 L0,0 Z" fill="url(#waveGrad)" opacity="0.5"/>
+    <defs>
+      <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" style="stop-color:#4f8cff"/>
+        <stop offset="100%" style="stop-color:#ff6b9d"/>
+      </linearGradient>
+    </defs>
+  </svg>
+</div>
+
+<div class="container">
+
+  <!-- TOOLS -->
+  <section class="tools-section">
+    <div class="tools-grid">
+      <a href="test-generator.html" class="tool-card purple">
+        <div class="tool-icon">&#9881;</div>
+        <h3>Test Generator</h3>
+        <p>Upload a reading comprehension PDF and AI will automatically create an interactive online test. Review, edit, and download.</p>
+        <div class="tool-link">Open Generator <span class="arrow">&rarr;</span></div>
+      </a>
+      <a href="results-analyser.html" class="tool-card green">
+        <div class="tool-icon">&#128202;</div>
+        <h3>Results Analyser</h3>
+        <p>View student results across all tests. Identify tricky questions, track student progress over time, and analyse class performance.</p>
+        <div class="tool-link">Open Analyser <span class="arrow">&rarr;</span></div>
+      </a>
+      <a href="#how" class="tool-card blue" onclick="document.getElementById('howSection').scrollIntoView({behavior:'smooth'});return false;">
+        <div class="tool-icon">&#128218;</div>
+        <h3>How It Works</h3>
+        <p>New here? Learn how to upload papers, generate tests, share with students, and view results in just a few minutes.</p>
+        <div class="tool-link">Read Guide <span class="arrow">&rarr;</span></div>
+      </a>
+    </div>
+  </section>
+
+  <!-- TEST LIBRARY -->
+  <section>
+    <div class="section-header">
+      <h2>Test Library</h2>
+      <p>All your reading comprehension tests in one place. Click to start a test.</p>
+    </div>
+
+    <div class="library-grid" id="libraryGrid">
+      <!-- Populated by JS -->
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="howSection">
+    <div class="section-header">
+      <h2>How It Works</h2>
+      <p>From PDF to online test in four simple steps.</p>
+    </div>
+
+    <div class="how-section">
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-num">1</div>
+          <h3>Upload Your Paper</h3>
+          <p>Open the Test Generator and upload your reading passage, question paper, and answer key as PDFs.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <h3>AI Extracts Content</h3>
+          <p>Gemini AI reads your documents and pulls out passages, questions, options, and correct answers automatically.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">3</div>
+          <h3>Review &amp; Generate</h3>
+          <p>Check the extracted content, fix anything that needs tweaking, then download the finished test as an HTML file.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">4</div>
+          <h3>Share &amp; Analyse</h3>
+          <p>Upload the test to GitHub Pages and share the link. Results flow to your Google Sheet for analysis.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEACHER QUICK LINKS -->
+  <div class="teacher-zone">
+    <div class="teacher-zone-text">
+      <h3>Teacher Tools</h3>
+      <p>Create new tests, view results, and manage your test library.</p>
+    </div>
+    <div class="teacher-zone-links">
+      <a href="test-generator.html" class="tz-link primary">Create New Test</a>
+      <a href="results-analyser.html" class="tz-link secondary">View Results</a>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  Comprehension Hub &mdash; Built for teachers, powered by AI.
+</div>
+
+<!-- ADD TEST MODAL -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <h2>Add Test to Library</h2>
+    <label>Test Name</label>
+    <input type="text" id="modalTestName" placeholder="e.g. NAPLAN 2016 Year 5 Reading">
+    <label>HTML Filename</label>
+    <input type="text" id="modalFileName" placeholder="e.g. naplan-2016-reading-yr5.html">
+    <label>Year Level</label>
+    <input type="text" id="modalYear" placeholder="e.g. Year 5">
+    <label>Number of Questions</label>
+    <input type="number" id="modalQuestions" placeholder="e.g. 38" value="38">
+    <label>Duration (minutes)</label>
+    <input type="number" id="modalDuration" placeholder="e.g. 50" value="50">
+    <label>Tag</label>
+    <select id="modalTag">
+      <option value="naplan">NAPLAN</option>
+      <option value="comprehension">Comprehension</option>
+      <option value="new">New</option>
+    </select>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn save" onclick="saveTest()">Add Test</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// TEST LIBRARY (stored in localStorage)
+// ============================================================
+
+const DEFAULT_TESTS = [
+  {
+    id: 'naplan-2016-yr5',
+    name: 'NAPLAN 2016 Year 5 Reading',
+    file: 'naplan-2016-reading-yr5.html',
+    year: 'Year 5',
+    questions: 38,
+    duration: 50,
+    tag: 'naplan'
+  }
+];
+
+function getTests() {
+  const saved = localStorage.getItem('comprehension_hub_tests');
+  if (saved) {
+    try { return JSON.parse(saved); } catch(e) {}
+  }
+  // First visit: seed with the default test
+  localStorage.setItem('comprehension_hub_tests', JSON.stringify(DEFAULT_TESTS));
+  return DEFAULT_TESTS;
+}
+
+function saveTests(tests) {
+  localStorage.setItem('comprehension_hub_tests', JSON.stringify(tests));
+}
+
+function renderLibrary() {
+  const tests = getTests();
+  const grid = document.getElementById('libraryGrid');
+
+  let html = '';
+
+  tests.forEach((test, i) => {
+    const tagClass = test.tag === 'naplan' ? 'tag-naplan' :
+                     test.tag === 'new' ? 'tag-new' : 'tag-comprehension';
+    const tagLabel = test.tag === 'naplan' ? 'NAPLAN' :
+                     test.tag === 'new' ? 'NEW' : 'Comprehension';
+
+    html += `<a href="${encodeURI(test.file)}" class="library-card">
+      <button class="delete-btn" onclick="event.preventDefault();event.stopPropagation();deleteTest(${i});" title="Remove from library">&#10005;</button>
+      <div class="library-tag ${tagClass}">${tagLabel}</div>
+      <h3>${escapeHtml(test.name)}</h3>
+      <div class="meta">
+        <span>${escapeHtml(test.year)}</span>
+        <span>${test.questions} questions</span>
+        <span>${test.duration} min</span>
+      </div>
+      <div class="start-btn">Start Test <span>&rarr;</span></div>
+    </a>`;
+  });
+
+  // Add test button
+  html += `<div class="add-test-card" onclick="openModal()">
+    <div class="plus">+</div>
+    <span>Add Test to Library</span>
+  </div>`;
+
+  grid.innerHTML = html;
+}
+
+function deleteTest(index) {
+  if (!confirm('Remove this test from the library? (The file itself will not be deleted.)')) return;
+  const tests = getTests();
+  tests.splice(index, 1);
+  saveTests(tests);
+  renderLibrary();
+}
+
+function openModal() {
+  document.getElementById('modalTestName').value = '';
+  document.getElementById('modalFileName').value = '';
+  document.getElementById('modalYear').value = '';
+  document.getElementById('modalQuestions').value = '38';
+  document.getElementById('modalDuration').value = '50';
+  document.getElementById('modalTag').value = 'comprehension';
+  document.getElementById('addModal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('addModal').classList.remove('active');
+}
+
+function saveTest() {
+  const name = document.getElementById('modalTestName').value.trim();
+  const file = document.getElementById('modalFileName').value.trim();
+  if (!name || !file) {
+    alert('Please fill in the test name and filename.');
+    return;
+  }
+
+  const tests = getTests();
+  tests.push({
+    id: 'test-' + Date.now(),
+    name: name,
+    file: file,
+    year: document.getElementById('modalYear').value.trim() || 'Year 5',
+    questions: parseInt(document.getElementById('modalQuestions').value) || 38,
+    duration: parseInt(document.getElementById('modalDuration').value) || 50,
+    tag: document.getElementById('modalTag').value
+  });
+  saveTests(tests);
+  closeModal();
+  renderLibrary();
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text || '';
+  return div.innerHTML;
+}
+
+// Close modal on background click
+document.getElementById('addModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// Init
+renderLibrary();
+</script>
+</body>
+</html>

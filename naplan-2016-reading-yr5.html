@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NAPLAN 2016 Year 5 Reading Test</title>
+<style>
+  :root {
+    --primary: #1a5276;
+    --primary-light: #2980b9;
+    --accent: #e67e22;
+    --correct: #27ae60;
+    --incorrect: #e74c3c;
+    --bg: #f4f6f8;
+    --card: #ffffff;
+    --text: #2c3e50;
+    --border: #dce1e6;
+    --passage-bg: #fefcf5;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* SCREENS */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* START SCREEN */
+  .start-container {
+    max-width: 560px; margin: 80px auto; background: var(--card);
+    border-radius: 12px; padding: 48px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    text-align: center;
+  }
+  .start-container h1 { color: var(--primary); font-size: 1.8rem; margin-bottom: 8px; }
+  .start-container .subtitle { color: #666; margin-bottom: 32px; font-size: 1rem; }
+  .start-container input[type="text"] {
+    width: 100%; padding: 14px 16px; font-size: 1.1rem; border: 2px solid var(--border);
+    border-radius: 8px; margin-bottom: 12px; transition: border-color 0.2s;
+  }
+  .start-container input:focus { border-color: var(--primary-light); outline: none; }
+  .start-container .class-input { margin-bottom: 24px; }
+
+  .btn {
+    display: inline-block; padding: 14px 36px; font-size: 1.1rem; font-weight: 600;
+    border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: var(--primary-light); }
+  .btn-primary:disabled { background: #bdc3c7; cursor: not-allowed; }
+  .btn-accent { background: var(--accent); color: white; }
+  .btn-accent:hover { background: #d35400; }
+
+  /* TEST SCREEN - HEADER */
+  .test-header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: var(--primary);
+    color: white; padding: 10px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .test-header .student-info { font-size: 0.9rem; opacity: 0.9; }
+  .test-header .progress { font-weight: 600; font-size: 0.95rem; }
+  .timer { font-variant-numeric: tabular-nums; font-size: 1.1rem; font-weight: 600; }
+
+  /* SECTION NAV */
+  .section-nav-bar {
+    position: fixed; top: 48px; left: 0; right: 0; z-index: 99;
+    background: var(--card); border-bottom: 1px solid var(--border);
+    padding: 8px 16px; display: flex; flex-wrap: wrap; gap: 6px;
+    justify-content: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .section-nav-bar button {
+    padding: 6px 14px; border: 2px solid var(--border); background: var(--card);
+    border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.15s;
+  }
+  .section-nav-bar button:hover { border-color: var(--primary-light); }
+  .section-nav-bar button.active { border-color: var(--primary); background: var(--primary); color: white; }
+  .section-nav-bar button.has-answers { border-color: var(--correct); }
+
+  /* SPLIT LAYOUT */
+  .test-body {
+    margin-top: 100px; /* header + nav bar */
+    display: flex;
+    height: calc(100vh - 100px);
+  }
+
+  .passage-panel {
+    width: 45%;
+    min-width: 350px;
+    background: var(--passage-bg);
+    border-right: 2px solid var(--border);
+    overflow-y: auto;
+    padding: 28px;
+    position: sticky;
+    top: 100px;
+    height: calc(100vh - 100px);
+  }
+  .passage-panel h3 { color: var(--primary); margin-bottom: 14px; font-size: 1.2rem; }
+  .passage-panel p { margin-bottom: 12px; line-height: 1.85; font-size: 0.98rem; }
+  .passage-panel .footnote { font-size: 0.85rem; color: #888; font-style: italic; margin-top: 12px; }
+  .passage-panel .intro { font-style: italic; color: #555; margin-bottom: 16px; }
+  .passage-panel ul { margin-left: 24px; margin-bottom: 12px; }
+  .passage-panel ul li { margin-bottom: 8px; line-height: 1.7; }
+  .passage-panel .sign-footer { margin-top: 16px; font-size: 0.85rem; color: #888; font-style: italic; }
+  .passage-panel .book-blurb { background: #f0ece3; padding: 16px; border-radius: 8px; margin: 16px 0; font-style: italic; }
+  .passage-panel .reviewer { font-weight: 600; margin-top: 12px; text-align: right; }
+
+  .questions-panel {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px;
+    height: calc(100vh - 100px);
+  }
+
+  .section-title {
+    font-size: 1.2rem; color: var(--primary); margin-bottom: 16px;
+    padding-bottom: 10px; border-bottom: 2px solid var(--border);
+  }
+
+  .question {
+    padding: 18px 0; border-bottom: 1px solid var(--border);
+  }
+  .question:last-child { border-bottom: none; }
+  .question-text { font-weight: 600; margin-bottom: 12px; font-size: 1rem; }
+  .question-text .q-num { color: var(--primary-light); margin-right: 4px; }
+  .question-text .quote { font-style: italic; font-weight: 400; color: #555; }
+
+  .options { display: flex; flex-direction: column; gap: 8px; }
+  .option {
+    display: flex; align-items: flex-start; padding: 10px 14px; border: 2px solid var(--border);
+    border-radius: 8px; cursor: pointer; transition: all 0.15s;
+  }
+  .option:hover { border-color: var(--primary-light); background: #f0f4f8; }
+  .option.selected { border-color: var(--primary); background: #eaf2f8; }
+  .option input[type="radio"] { margin-right: 10px; margin-top: 3px; accent-color: var(--primary); }
+  .option label { cursor: pointer; flex: 1; }
+
+  .text-answer { margin-top: 8px; }
+  .text-answer textarea {
+    width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px;
+    font-size: 1rem; font-family: inherit; resize: vertical; min-height: 80px;
+  }
+  .text-answer textarea:focus { border-color: var(--primary-light); outline: none; }
+
+  .nav-buttons {
+    display: flex; justify-content: space-between; margin-top: 24px; gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .submit-section {
+    text-align: center; padding: 24px 0; margin-top: 12px;
+    border-top: 2px solid var(--border);
+  }
+  .submit-section .warning { color: var(--incorrect); margin-bottom: 12px; font-weight: 500; }
+
+  /* RESULTS SCREEN */
+  .results-container { max-width: 800px; margin: 0 auto; padding: 20px; }
+  .results-header {
+    background: var(--card); border-radius: 12px; padding: 36px;
+    text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 24px;
+  }
+  .results-header h1 { color: var(--primary); margin-bottom: 8px; }
+  .score-display { font-size: 3.5rem; font-weight: 700; margin: 16px 0; }
+  .score-display .score-fraction { font-size: 1.5rem; color: #666; font-weight: 400; }
+  .score-bar { height: 12px; background: #ecf0f1; border-radius: 6px; overflow: hidden; margin: 16px auto; max-width: 400px; }
+  .score-bar-fill { height: 100%; border-radius: 6px; transition: width 1s ease; }
+
+  .results-detail {
+    background: var(--card); border-radius: 12px; padding: 28px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06); margin-bottom: 24px;
+  }
+  .results-detail h2 { color: var(--primary); margin-bottom: 16px; font-size: 1.2rem; }
+  .result-row {
+    display: flex; align-items: center; padding: 10px 12px;
+    border-radius: 6px; margin-bottom: 4px; font-size: 0.95rem;
+  }
+  .result-row:nth-child(odd) { background: #f8f9fa; }
+  .result-row .r-num { width: 50px; font-weight: 600; color: var(--primary); }
+  .result-row .r-answer { flex: 1; }
+  .result-row .r-correct { width: 120px; text-align: center; }
+  .result-row .r-icon { width: 30px; text-align: center; font-size: 1.2rem; }
+  .result-row.correct .r-icon { color: var(--correct); }
+  .result-row.incorrect .r-icon { color: var(--incorrect); }
+  .result-row.incorrect .r-correct { color: var(--correct); font-weight: 600; }
+
+  .sheets-status {
+    text-align: center; padding: 16px; margin-top: 16px;
+    border-radius: 8px; font-weight: 500;
+  }
+  .sheets-status.success { background: #d5f5e3; color: var(--correct); }
+  .sheets-status.error { background: #fadbd8; color: var(--incorrect); }
+  .sheets-status.sending { background: #fef9e7; color: var(--accent); }
+
+  /* TEACHER DASHBOARD */
+  .teacher-link {
+    position: fixed; bottom: 20px; right: 20px; background: var(--primary);
+    color: white; padding: 10px 16px; border-radius: 8px; font-size: 0.85rem;
+    cursor: pointer; z-index: 200; text-decoration: none; border: none;
+  }
+  .teacher-link:hover { background: var(--primary-light); }
+
+  .dashboard-container { max-width: 900px; margin: 0 auto; padding: 20px; }
+  .config-box {
+    background: var(--card); border-radius: 12px; padding: 28px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 24px;
+  }
+  .config-box h2 { color: var(--primary); margin-bottom: 16px; }
+  .config-box p { margin-bottom: 12px; color: #555; font-size: 0.95rem; }
+  .config-box input[type="text"], .config-box input[type="url"] {
+    width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px;
+    font-size: 1rem; margin-bottom: 8px;
+  }
+  .config-box input:focus { border-color: var(--primary-light); outline: none; }
+  .config-box .help { font-size: 0.85rem; color: #888; margin-top: 4px; }
+
+  .instructions-box {
+    background: #eaf2f8; border-radius: 8px; padding: 20px; margin-top: 16px;
+  }
+  .instructions-box h3 { color: var(--primary); margin-bottom: 8px; }
+  .instructions-box ol { padding-left: 20px; }
+  .instructions-box ol li { margin-bottom: 8px; font-size: 0.95rem; color: #444; }
+  .code-block {
+    background: #2c3e50; color: #ecf0f1; padding: 16px; border-radius: 8px;
+    font-family: 'Consolas', monospace; font-size: 0.85rem; overflow-x: auto;
+    margin: 12px 0; white-space: pre; line-height: 1.5;
+  }
+
+  .test-url-box {
+    background: #eaf2f8; padding: 14px; border-radius: 8px; font-family: monospace;
+    font-size: 0.9rem; word-break: break-all; margin: 12px 0;
+  }
+
+  /* MOBILE FALLBACK */
+  @media (max-width: 900px) {
+    .test-body {
+      flex-direction: column;
+      height: auto;
+    }
+    .passage-panel {
+      width: 100%;
+      min-width: unset;
+      position: relative;
+      top: auto;
+      height: 40vh;
+      border-right: none;
+      border-bottom: 2px solid var(--border);
+    }
+    .questions-panel {
+      height: auto;
+      overflow-y: visible;
+    }
+    .start-container { margin: 20px; padding: 28px; }
+    .score-display { font-size: 2.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== START SCREEN ==================== -->
+<div id="startScreen" class="screen active">
+  <div class="start-container">
+    <h1>NAPLAN 2016 Reading Test</h1>
+    <p class="subtitle">Year 5 &mdash; 50 Minutes &mdash; 38 Questions</p>
+    <input type="text" id="studentName" placeholder="Enter your full name" autofocus>
+    <input type="text" id="studentClass" class="class-input" placeholder="Enter your class (e.g. 5B)">
+    <br>
+    <button class="btn btn-primary" id="startBtn" onclick="startTest()" disabled>Begin Test</button>
+  </div>
+</div>
+
+<!-- ==================== TEST SCREEN ==================== -->
+<div id="testScreen" class="screen">
+  <!-- Fixed header -->
+  <div class="test-header">
+    <div>
+      <div class="student-info" id="headerStudent"></div>
+      <div class="progress" id="headerProgress">0 of 38 answered</div>
+    </div>
+    <div class="timer" id="timer">50:00</div>
+  </div>
+
+  <!-- Fixed section nav -->
+  <div class="section-nav-bar" id="sectionNav"></div>
+
+  <!-- Split: passage left, questions right -->
+  <div class="test-body">
+    <div class="passage-panel" id="passagePanel"></div>
+    <div class="questions-panel" id="questionsPanel"></div>
+  </div>
+</div>
+
+<!-- ==================== RESULTS SCREEN ==================== -->
+<div id="resultsScreen" class="screen">
+  <div class="results-container" id="resultsContainer"></div>
+</div>
+
+<!-- ==================== TEACHER DASHBOARD ==================== -->
+<div id="dashboardScreen" class="screen">
+  <div class="dashboard-container">
+    <h1 style="color:var(--primary);margin-bottom:24px;">Teacher Setup</h1>
+
+    <div class="config-box">
+      <h2>Google Sheets Integration</h2>
+      <p>Student results are automatically sent to a Google Sheet. Follow the steps below to set it up (one-time only).</p>
+
+      <div class="instructions-box">
+        <h3>Setup Instructions</h3>
+        <ol>
+          <li>Open <strong>Google Sheets</strong> and create a new spreadsheet.</li>
+          <li>Name it something like <strong>"NAPLAN 2016 Year 5 Reading Results"</strong>.</li>
+          <li>Go to <strong>Extensions &gt; Apps Script</strong>.</li>
+          <li>Delete any code in the editor and paste the code shown below.</li>
+          <li>Click <strong>Deploy &gt; New deployment</strong>.</li>
+          <li>Set type to <strong>"Web app"</strong>.</li>
+          <li>Set <strong>"Execute as"</strong> to <strong>Me</strong>.</li>
+          <li>Set <strong>"Who has access"</strong> to <strong>Anyone</strong>.</li>
+          <li>Click <strong>Deploy</strong>, then <strong>Authorize access</strong> when prompted.</li>
+          <li>Copy the <strong>Web app URL</strong> and paste it below.</li>
+        </ol>
+      </div>
+
+      <h3 style="margin-top:20px;color:var(--primary);">Apps Script Code</h3>
+      <p style="font-size:0.9rem;color:#666;">Copy and paste this entire block into the Apps Script editor:</p>
+      <div class="code-block" id="appsScriptCode"></div>
+      <button class="btn btn-primary" style="margin-top:8px;padding:8px 16px;font-size:0.9rem;" onclick="copyScript()">Copy Code</button>
+
+      <h3 style="margin-top:24px;color:var(--primary);">Web App URL</h3>
+      <input type="url" id="sheetUrl" placeholder="Paste your Google Apps Script Web App URL here" value="">
+      <p class="help">This URL starts with https://script.google.com/macros/...</p>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="btn btn-primary" onclick="saveConfig()">Save Configuration</button>
+        <button class="btn btn-accent" onclick="testConnection()">Test Connection</button>
+      </div>
+      <div id="configStatus" style="margin-top:12px;"></div>
+    </div>
+
+    <div class="config-box">
+      <h2>Share With Students</h2>
+      <p>Once configured, share this HTML file with students via your LMS, shared drive, or web hosting. The Google Sheets URL is embedded in the file so students don't need to configure anything.</p>
+      <button class="btn btn-primary" onclick="showScreen('startScreen')" style="margin-top:8px;">Back to Test</button>
+    </div>
+  </div>
+</div>
+
+<button class="teacher-link" onclick="showScreen('dashboardScreen')">Teacher Setup</button>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+
+const CORRECT_ANSWERS = {
+  1:'d', 2:'b', 3:'a', 4:'a', 5:'d', 6:'a', 7:'b', 8:'a',
+  9:'c', 10:'a', 11:'b', 12:'c', 13:'b', 14:'a', 15:'b',
+  16:'d', 17:'d', 18:'c', 19:'b', 20:'d', 21:'b', 22:'a',
+  23:'c', 24:'d', 25:'c', 26:'c', 27:'b', 28:'a', 29:'a',
+  30:'c', 31:'b', 32:'d', 33:'a', 34:'b', 35:'b', 36:'a',
+  37:'written', 38:'d'
+};
+
+const sections = [
+  {
+    title: "Brain Freeze (Questions 1\u20134)",
+    shortTitle: "Brain Freeze",
+    passage: `<h3>Brain Freeze</h3>
+<p>Do you ever eat an ice-cream on a hot day and get a headache from the cold? Some people call this a \u201cbrain freeze\u201d.</p>
+<p>The ice-cream makes your mouth very cold, very quickly. Your body sends messages from your mouth to your brain. Blood then rushes in to warm up your mouth. It hurts!</p>
+<p>But there is something you can do to make the pain go away. You need to warm the roof (or top part) of your mouth. You can do this with your tongue. If you can, roll your tongue, then press it on the roof of your mouth. It\u2019s better to use the underneath of your tongue because it\u2019s warmer than the top. You could also use your thumb. But be sure it\u2019s clean.</p>
+<p>A brain freeze should only ever last for about 30\u201360 seconds.</p>`,
+    questions: [
+      { num:1, text:"When you eat ice-cream the underneath part of your tongue", options:{a:"feels like a ball.",b:"touches the ice-cream first.",c:"is colder than the top part.",d:"is the warmest part."} },
+      { num:2, text:"To make a brain freeze go away you should press your tongue on", options:{a:"the tip of your thumb.",b:"the roof of your mouth.",c:"your teeth.",d:"your ice-cream."} },
+      { num:3, text:"Before you use your tongue to warm your mouth you should", options:{a:"roll it.",b:"warm it.",c:"clean it.",d:"squash it."} },
+      { num:4, text:"This text mostly helps you to", options:{a:"understand something about your body.",b:"explain how to stop cold things melting.",c:"choose the best kind of ice-cream.",d:"find out why things freeze."} },
+    ]
+  },
+  {
+    title: "Bamboozled! (Questions 5\u201311)",
+    shortTitle: "Bamboozled!",
+    passage: `<h3>Bamboozled!</h3>
+<p>Bamboo is an amazing plant. Did you know it is actually a grass? In fact giant bamboo is the largest member of the grass family. Some types can grow an incredible 90 centimetres in just one day. Some bamboo plants can grow to over 30 metres tall, which is as tall as a gum tree.</p>
+<p>You probably know that bamboo is the favourite food of pandas, but chimpanzees, gorillas and elephants eat it too.</p>
+<p>Bamboo is also extremely useful to people. It is a very valuable construction material because it is so strong. In fact, whole houses can be built from bamboo. In some parts of the world bamboo is used as scaffolding (the frame used to support building work).</p>
+<p>The range of things that can be made from bamboo is huge. Furniture, cooking utensils, and musical instruments can all be made from bamboo. Bamboo fibres can be used to produce a soft, cotton-like material for T-shirts and underwear. Bamboo fibres are also used to make paper. Bamboo can even be used to make bicycle frames and boats.</p>`,
+    questions: [
+      { num:5, text:"Bamboo is a type of", options:{a:"tree.",b:"wood.",c:"bush.",d:"grass."} },
+      { num:6, text:"According to the text, one way bamboo is amazing is that", options:{a:"it can grow extremely fast.",b:"it grows near gum trees.",c:"it comes in many sizes.",d:"it grows anywhere."} },
+      { num:7, text:"Which activity uses bamboo as scaffolding?", options:{a:"plumbing",b:"building",c:"cooking",d:"sailing"} },
+      { num:8, text:"Bamboo fibres are used in the production of", options:{a:"paper.",b:"furniture.",c:"musical instruments.",d:"boats."} },
+      { num:9, text:"Fabric made from bamboo is", options:{a:"lumpy.",b:"scratchy.",c:"cottony.",d:"clingy."} },
+      { num:10, text:"According to the text, which part of a bicycle can be made from bamboo?", options:{a:"the frame",b:"the wheels",c:"the pedals",d:"the seat"} },
+      { num:11, text:"The main purpose of this text is", options:{a:"to encourage people to use bamboo more often.",b:"to give interesting facts and uses for bamboo.",c:"to list everything that can be made from bamboo.",d:"to outline where bamboo is mainly grown and used."} },
+    ]
+  },
+  {
+    title: "Library Magician (Questions 12\u201319)",
+    shortTitle: "Library Magician",
+    passage: `<h3>Library Magician</h3>
+<p>On Saturday afternoons, I go to the library for story time with my little sister, Tess. The children\u2019s librarian, Mr Frank, has been leading story time ever since my mum was a little girl! Today he was wearing a funny white beard and a lumpy, brown coat.</p>
+<p>When we sat down with the other kids, Mr Frank winked and said, \u201cDid you know that every book is alive?\u201d</p>
+<p>He picked up a book that had a picture of a bird on the inside and flapped the covers as if they were wings. Mr Frank had a great big smile. He brushed his coat sleeve over the book, and, whoosh, a white bird flew up to the ceiling! We all laughed and wondered where it came from. But Mr Frank whispered, \u201cShhhh! This is a library!\u201d and gave us an even bigger smile.</p>
+<p>Next he picked up a book titled <em>How to Make a Puppet</em>. As soon as he showed it to us, a little cowboy popped up from between the pages! The little cowboy was moving and talking! I covered my mouth to keep from laughing.</p>
+<p>Then Mr Frank picked up a book with orange and black stripes on the cover. The title was <em>Tigers of East Asia</em>. I glanced at Tess. My heart was thumping. Mr Frank placed the book behind his back then whisked it out again! Now it had claws! \u201cRAWWRRR!\u201d</p>
+<p>Tess was a little scared and ready to go home. As we waited to have our books scanned, Mr Frank handed me a book with a worn red cover. \u201cYour mum used to borrow this one,\u201d he said. His eyes twinkled.</p>
+<p>On the way home I read the title, trying to imagine what was inside. I didn\u2019t dare open it. But as we walked, a small thrill was rising inside me like a bird taking off.</p>`,
+    questions: [
+      { num:12, text:`<span class="quote">"Today he was wearing a funny white beard and a lumpy, brown coat." (paragraph 1)</span><br>This sentence shows that Mr Frank`, options:{a:"feels cold.",b:"is very old.",c:"is in a costume.",d:"works at the library."} },
+      { num:13, text:"Mr Frank tries to show that every book is alive by", options:{a:"telling silly jokes.",b:"acting out stories.",c:"doing magic tricks.",d:"reading stories aloud."} },
+      { num:14, text:"When the children laugh at the white bird in paragraph 3, Mr Frank is", options:{a:"happy.",b:"angry.",c:"surprised.",d:"disappointed."} },
+      { num:15, text:"The cowboy described in paragraph 4 is probably a", options:{a:"doll.",b:"puppet.",c:"picture.",d:"daydream."} },
+      { num:16, text:"The exclamation marks (!) in paragraph 4 show that the narrator is", options:{a:"angry.",b:"scared.",c:"thankful.",d:"amazed."} },
+      { num:17, text:`<span class="quote">"But as we walked, a small thrill was rising inside me like a bird taking off." (last paragraph)</span><br>This means the narrator`, options:{a:"is worried about opening the worn-looking book.",b:"is happy to finish story time at the library.",c:"is wanting to tell her mum about the book.",d:"is excited about reading the recommended story."} },
+      { num:18, text:"Which word best describes Mr Frank in the text?", options:{a:"fierce",b:"brave",c:"playful",d:"watchful"} },
+      { num:19, text:`In the text, <em>whoosh</em> (paragraph 3) and \u201cRAWWRRR!\u201d (paragraph 5) are`, options:{a:"silly nonsense words.",b:"sounds that animals make.",c:"words from another language.",d:"strong feelings of the characters."} },
+    ]
+  },
+  {
+    title: "Please Do Not Feed Native Animals (Questions 20\u201325)",
+    shortTitle: "Native Animals",
+    passage: `<h3>Please Do Not Feed Native Animals</h3>
+<p><strong>The native animals in this park have enough natural food to survive and thrive.</strong></p>
+<p>You might think that you are being kind to the native birds and animals by giving them your food scraps, but feeding them or leaving rubbish around that they might eat is cruel, not kind!</p>
+<p>Remember:</p>
+<ul>
+<li>Feeding animals can make them sick because sometimes our food contains ingredients that native animals cannot easily digest. They can become weak and more likely to catch a disease.</li>
+<li>The animals become used to being fed by people or finding food in rubbish. When this happens they can lose the ability to hunt and forage for themselves when they need to.</li>
+<li>Animals that rely on being fed by humans may become aggressive. They gather near areas of high human activity such as campsites and walking tracks. Animals have been known to fight over food and bother people in the area.</li>
+<li>Feeding animals can encourage them to look for food in residential areas or nearby farms. This is dangerous for both the animals and residents.</li>
+</ul>
+<p>Please be a friend to our native birds and animals.</p>
+<p>Take your food scraps and rubbish with you.</p>
+<p class="sign-footer">Feeding animals is an offence under By-law 457 and may attract a $250 fine.</p>`,
+    questions: [
+      { num:20, text:"The sign tells the reader that native animals in the park", options:{a:"are playful and friendly.",b:"have been put there for visitors to see.",c:"are untamed and dangerous.",d:"can take care of themselves."} },
+      { num:21, text:`<span class="quote">"You might think that you are being kind \u2014" (paragraph 1)</span><br>These words are used to`, options:{a:"accuse the reader of making a mistake.",b:"identify a common opinion which is not correct.",c:"give the writer\u2019s opinion about visitors.",d:"show sympathy for people doing the wrong thing."} },
+      { num:22, text:`<span class="quote">"Please be a friend \u2014"</span><br>The writer starts the sentence like this`, options:{a:"to appeal to the reader\u2019s emotions.",b:"to emphasise that it is important to care about animals.",c:"to encourage more people to sponsor the animals in the park.",d:"to give scientific information in an informal way."} },
+      { num:23, text:"Which of these statements is supported by the sign?", options:{a:"Animals survive better with help from humans.",b:"When animals eat human food it results in more rubbish in the park.",c:"Animals can behave in a threatening manner to get human food.",d:"When animals are not scared of humans it is better for their survival."} },
+      { num:24, text:"The sign mainly tries to persuade by", options:{a:"offering rewards.",b:"making threats.",c:"targeting emotions.",d:"providing information."} },
+      { num:25, text:"The main purpose of the picture on the sign is", options:{a:"to remind people of the types of wildlife in the park.",b:"to illustrate the correct way to feed native animals.",c:"to show the sign\u2019s message in a different way.",d:"to make the sign more attractive."} },
+    ]
+  },
+  {
+    title: "The Stranger (Questions 26\u201332)",
+    shortTitle: "The Stranger",
+    passage: `<h3>The Stranger</h3>
+<p class="intro">Buck, a sled dog that has been treated badly by humans in the past, is drawn to life in the wild. One night he hears the call of a timber wolf and goes to investigate.</p>
+<p>As he drew closer to the cry he went more slowly, with caution in every movement, till he came to an open place among the trees, and looking out saw, erect on haunches, with nose pointed to the sky, a long, lean, timber wolf.</p>
+<p>He had made no noise, yet it ceased from its howling and tried to sense his presence. Buck stalked into the open, half crouching, body gathered compactly together, tail straight and stiff, feet falling with unwonted care<sup>1</sup>. Every movement advertised both a threat and an overture of friendliness. It was the menacing truce that marks the meeting of wild beasts that prey. But the wolf fled at the sight of him. He followed, with wild leapings, in a frenzy to overtake. He ran him into a blind channel, in the bed of the creek where a timber jam barred the way.</p>
+<p>Buck did not attack, but circled him about and hedged him in with friendly advances. The wolf was suspicious and afraid; for Buck made three of him in weight, while his head barely reached Buck\u2019s shoulder. Watching his chance, he darted away, and the chase was resumed. Time and again he was cornered, and the thing repeated, though he was in poor condition, or Buck could not so easily have overtaken him. He would run till Buck\u2019s head was even with his flank, when he would whirl around at bay, only to dash away again at the first opportunity.</p>
+<p>But in the end Buck\u2019s persistence was rewarded; for the wolf, finding that no harm was intended, finally sniffed noses with him. Then they became friendly, and played about in the nervous, half-coy way with which fierce beasts belie their fierceness. After some time of this the wolf started off at an easy lope in a manner that plainly showed he was going somewhere. He made it clear to Buck that he was to come, and they ran side by side through the sombre twilight, straight up the creek bed, into the gorge from which it issued, and across the bleak divide where it took its rise.</p>
+<p class="footnote"><sup>1</sup> feet falling with unusual care</p>`,
+    questions: [
+      { num:26, text:`At the beginning of the text, Buck is described as approaching the wolf <span class="quote">"with caution in every movement."</span> Why does he move this way?`, options:{a:"He has an injury and does not want to make it worse.",b:"He is hoping to surprise the wolf.",c:"He does not know how the wolf will react.",d:"He cannot tell which direction the cry is coming from."} },
+      { num:27, text:`In the second paragraph the writer talks of both <span class="quote">"a threat and an overture of friendliness."</span> Which quotation from the text means the same thing?`, options:{a:"half crouching (paragraph 2)",b:"menacing truce (paragraph 2)",c:"wild leapings (paragraph 2)",d:"friendly advances (paragraph 3)"} },
+      { num:28, text:"How does the wolf behave in the third paragraph?", options:{a:"He runs away from Buck, stops, then runs again.",b:"He snarls at Buck to try to scare him.",c:"He overtakes Buck then waits for him.",d:"He starts to fight with Buck, then runs away."} },
+      { num:29, text:"Why was Buck able to catch up with the wolf?", options:{a:"The wolf was not healthy.",b:"The wolf did not know the area well.",c:"The wolf let Buck catch him as part of a game.",d:"The wolf was much younger than Buck."} },
+      { num:30, text:"The beginning of the fourth paragraph suggests Buck is very", options:{a:"secretive.",b:"powerful.",c:"patient.",d:"careful."} },
+      { num:31, text:`<span class="quote">"\u2014 fierce beasts belie their fierceness \u2014" (paragraph 4)</span><br>This could be rewritten as`, options:{a:"wild animals behave as if they are injured.",b:"aggressive animals behave as if they are gentle.",c:"frightening animals behave as if they are frightened.",d:"angry animals behave as if they are happy."} },
+      { num:32, text:"The wolf\u2019s actions show that he goes from", options:{a:"ignoring Buck to threatening him.",b:"fearing Buck to defeating him.",c:"snarling at Buck to following him.",d:"mistrusting Buck to accepting him."} },
+    ]
+  },
+  {
+    title: "Reviewing Curious Children (Questions 33\u201338)",
+    shortTitle: "Curious Children",
+    passage: `<h3>Reviewing <em>Curious Children</em></h3>
+<div class="book-blurb">
+<p><strong>Curious Children</strong></p>
+<p>Minh finally located the ON button for the archaic computer. The screen flickered once, and then darkened. Just as suddenly, it hummed to life again, and two startling words flashed at them from the darkness.</p>
+<p><strong>WELCOME PRESIDENT!</strong></p>
+<p>When Harry, Minh and Jessica discover an old computer in a disused railway tunnel, they have no idea of the catastrophic potential of the data locked within its circuits. Only one thing is certain \u2014 if the computer\u2019s contents are revealed, the world will never be the same.</p>
+</div>
+
+<p><strong>Review by Will Forsyth:</strong></p>
+<p><em>Curious Children</em> \u2014 Or should I say, \u201ccurious book\u201d? Sattler\u2019s latest offering seems to blur the line between action thriller and science fiction. The author\u2019s lack of commitment to the conventions of either genre makes the book feel unsatisfying and incomplete. His previous books had no such identity crisis; readers knew exactly what they were in for \u2014 adventure with ingeniously dramatic plot twists. Perhaps praise for these works prompted Sattler to take himself a bit too seriously, resulting in a clever plot that is constantly slowed by philosophy and detail when it should just be whipping along.</p>
+<p class="reviewer">\u2014 Will Forsyth</p>
+
+<p><strong>Review by Geraldine Saxby:</strong></p>
+<p>D L Sattler\u2019s new book had me hooked from the first page. Once again, Sattler displays his skill in creating an intricate plot peopled by strongly drawn characters. This time he has added depth by setting the events in a global context, which gives the book a significance that is lacking in other action-heavy adolescent stories. When the curious children of the title find an abandoned computer, they are unaware of the danger inherent in their discovery. As it becomes obvious how explosive the information in the computer is, they find they have no idea who they can trust with it. <em>Curious Children</em> is a perfect bridging book for keen readers who are moving towards adult spy novels and thrillers. It can be recommended with confidence to any teenager who enjoys a read that entertains, challenges, and moves at a cracking pace.</p>
+<p class="reviewer">\u2014 Geraldine Saxby</p>`,
+    questions: [
+      { num:33, text:"Forsyth thinks a good adventure story", options:{a:"has a complex plot and plenty of action.",b:"has an intricate plot and some reflection.",c:"challenges the conventions of the genre.",d:"is predictable in terms of the subject matter of its plot."} },
+      { num:34, text:"What is the aim of Saxby\u2019s final two sentences?", options:{a:"to inform people of the book\u2019s content",b:"to identify the likely audience for the book",c:"to explain that the book is a spy novel",d:"to recommend the book to librarians"} },
+      { num:35, text:"On which aspect of the novel are both reviewers positive?", options:{a:"characters",b:"plot",c:"setting",d:"writing style"} },
+      { num:36, text:"Which statement is most similar to an opinion expressed in Forsyth\u2019s review?", options:{a:"Sattler again displays his distinctive use of language.",b:"This book is unlike Sattler\u2019s earlier works.",c:"Sattler is a writer who understands what his readers want.",d:"This book is a departure from Sattler\u2019s usual subject matter."} },
+      { num:37, text:"What is the identity crisis that Forsyth refers to in his review?", type:"written" },
+      { num:38, text:"At the end of each review, what do the stars represent?", options:{a:"the difficulty of the book",b:"the age classification for the book",c:"the rating of the book by readers",d:"the reviewer\u2019s judgement"} },
+    ]
+  }
+];
+
+// ============================================================
+// APP STATE
+// ============================================================
+
+let studentAnswers = {};
+let timerInterval = null;
+let secondsLeft = 50 * 60;
+let currentSection = 0;
+
+// ============================================================
+// GOOGLE SHEETS URL - Embedded config
+// If a URL is saved here, students don't need to configure anything.
+// The Teacher Setup page will also save to localStorage as a fallback.
+// ============================================================
+const EMBEDDED_SHEET_URL = '';  // Teacher: paste your URL between the quotes after deploying
+
+function getSheetUrl() {
+  return localStorage.getItem('naplan_sheet_url') || EMBEDDED_SHEET_URL || '';
+}
+
+// ============================================================
+// INIT
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+  const nameInput = document.getElementById('studentName');
+  const classInput = document.getElementById('studentClass');
+  const startBtn = document.getElementById('startBtn');
+
+  function checkReady() {
+    startBtn.disabled = !(nameInput.value.trim() && classInput.value.trim());
+  }
+  nameInput.addEventListener('input', checkReady);
+  classInput.addEventListener('input', checkReady);
+  nameInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !startBtn.disabled) startTest(); });
+  classInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !startBtn.disabled) startTest(); });
+
+  // Load saved config
+  const savedUrl = localStorage.getItem('naplan_sheet_url');
+  if (savedUrl) document.getElementById('sheetUrl').value = savedUrl;
+
+  // Populate Apps Script code
+  document.getElementById('appsScriptCode').textContent = getAppsScriptCode();
+
+  buildSectionNav();
+  showSection(0);
+});
+
+function getAppsScriptCode() {
+  return `function doPost(e) {
+  var lock = LockService.getScriptLock();
+  lock.tryLock(10000);
+
+  try {
+    var raw = '';
+    if (e.postData && e.postData.contents) raw = e.postData.contents;
+    if (e.parameter && e.parameter.payload) raw = e.parameter.payload;
+
+    var data = JSON.parse(raw);
+
+    // Route to a sheet tab based on testName (creates tab if needed)
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var tabName = (data.testName || 'General').substring(0, 100);
+    var sheet = ss.getSheetByName(tabName);
+    if (!sheet) {
+      sheet = ss.insertSheet(tabName);
+    }
+
+    var totalQ = data.totalQuestions || 38;
+    var writtenQs = data.writtenQuestions || [];
+
+    // Create headers if tab is empty
+    if (sheet.getLastRow() === 0) {
+      var headers = ['Timestamp', 'Student Name', 'Class', 'Score', 'Percentage', 'Total Questions'];
+      for (var i = 1; i <= totalQ; i++) {
+        headers.push('Q' + i);
+      }
+      for (var w = 0; w < writtenQs.length; w++) {
+        headers.push('Q' + writtenQs[w] + ' Written Response');
+      }
+      sheet.appendRow(headers);
+      sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+      sheet.setFrozenRows(1);
+    }
+
+    var answers = data.answers || {};
+    var correctAnswers = data.correctAnswers || {};
+
+    var row = [
+      new Date().toLocaleString('en-AU'),
+      data.studentName || '',
+      data.studentClass || '',
+      data.score || 0,
+      data.percentage || '0%',
+      totalQ
+    ];
+
+    for (var i = 1; i <= totalQ; i++) {
+      var ans = answers['q' + i] || '';
+      var correct = correctAnswers['q' + i] || '';
+      if (writtenQs.indexOf(i) > -1) {
+        row.push(ans ? 'See written' : '');
+      } else {
+        row.push(ans === correct ? '\\u2713 ' + ans.toUpperCase() : '\\u2717 ' + (ans ? ans.toUpperCase() : '-') + ' (' + correct.toUpperCase() + ')');
+      }
+    }
+
+    for (var w = 0; w < writtenQs.length; w++) {
+      row.push(answers['q' + writtenQs[w]] || '');
+    }
+
+    sheet.appendRow(row);
+  } finally {
+    lock.releaseLock();
+  }
+
+  return ContentService
+    .createTextOutput(JSON.stringify({status: 'ok'}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet(e) {
+  // Return all sheet tab names and data for the analyser
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheets = ss.getSheets();
+  var result = { tests: [] };
+
+  for (var s = 0; s < sheets.length; s++) {
+    var sheet = sheets[s];
+    var data = sheet.getDataRange().getValues();
+    if (data.length < 2) continue;
+    result.tests.push({
+      name: sheet.getName(),
+      headers: data[0],
+      rows: data.slice(1)
+    });
+  }
+
+  return ContentService
+    .createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+}`;
+}
+
+// ============================================================
+// BUILD TEST
+// ============================================================
+
+function buildSectionNav() {
+  const nav = document.getElementById('sectionNav');
+  nav.innerHTML = '';
+  sections.forEach((sec, si) => {
+    const btn = document.createElement('button');
+    btn.textContent = sec.shortTitle;
+    btn.onclick = () => showSection(si);
+    if (si === 0) btn.classList.add('active');
+    nav.appendChild(btn);
+  });
+}
+
+function buildQuestionsForSection(sec) {
+  let html = `<h2 class="section-title">${sec.title}</h2>`;
+
+  sec.questions.forEach(q => {
+    if (q.type === 'written') {
+      const savedVal = studentAnswers['q' + q.num] || '';
+      html += `
+        <div class="question" id="question-${q.num}">
+          <div class="question-text"><span class="q-num">Q${q.num}.</span> ${q.text}</div>
+          <div class="text-answer">
+            <textarea id="answer-${q.num}" placeholder="Write your answer here..." oninput="saveWrittenAnswer(${q.num}, this.value)">${escapeHtml(savedVal)}</textarea>
+          </div>
+        </div>`;
+    } else {
+      let optionsHtml = '';
+      Object.keys(q.options).forEach(key => {
+        const selected = studentAnswers['q' + q.num] === key ? ' selected' : '';
+        const checked = studentAnswers['q' + q.num] === key ? ' checked' : '';
+        optionsHtml += `
+          <div class="option${selected}" onclick="selectOption(${q.num}, '${key}', this)">
+            <input type="radio" name="q${q.num}" id="q${q.num}_${key}" value="${key}"${checked}>
+            <label for="q${q.num}_${key}"><strong>${key.toUpperCase()}.</strong> ${q.options[key]}</label>
+          </div>`;
+      });
+      html += `
+        <div class="question" id="question-${q.num}">
+          <div class="question-text"><span class="q-num">Q${q.num}.</span> ${q.text}</div>
+          <div class="options">${optionsHtml}</div>
+        </div>`;
+    }
+  });
+
+  // Previous / Next buttons
+  const si = sections.indexOf(sec);
+  html += `<div class="nav-buttons">`;
+  html += si > 0
+    ? `<button class="btn btn-primary" onclick="showSection(${si-1})">&laquo; Previous</button>`
+    : `<span></span>`;
+  html += si < sections.length - 1
+    ? `<button class="btn btn-primary" onclick="showSection(${si+1})">Next &raquo;</button>`
+    : `<span></span>`;
+  html += `</div>`;
+
+  // Submit button (always visible)
+  const answered = Object.keys(studentAnswers).length;
+  const unanswered = 38 - answered;
+  html += `
+    <div class="submit-section">
+      <div class="warning" id="submitWarning" style="color:${unanswered > 0 ? 'var(--incorrect)' : 'var(--correct)'}">
+        ${unanswered > 0 ? unanswered + ' question' + (unanswered > 1 ? 's' : '') + ' unanswered' : 'All questions answered!'}
+      </div>
+      <button class="btn btn-accent" onclick="submitTest()" style="font-size:1.1rem;padding:14px 40px;">Submit Test</button>
+    </div>`;
+
+  return html;
+}
+
+// ============================================================
+// TEST FLOW
+// ============================================================
+
+function startTest() {
+  const name = document.getElementById('studentName').value.trim();
+  const cls = document.getElementById('studentClass').value.trim();
+  if (!name || !cls) return;
+
+  document.getElementById('headerStudent').textContent = name + ' \u2014 ' + cls;
+  showScreen('testScreen');
+  startTimer();
+  showSection(0);
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function showSection(idx) {
+  currentSection = idx;
+  const sec = sections[idx];
+
+  // Update passage panel
+  document.getElementById('passagePanel').innerHTML = sec.passage;
+
+  // Update questions panel
+  document.getElementById('questionsPanel').innerHTML = buildQuestionsForSection(sec);
+
+  // Update nav buttons
+  const navBtns = document.getElementById('sectionNav').children;
+  for (let i = 0; i < navBtns.length; i++) {
+    navBtns[i].classList.toggle('active', i === idx);
+    // Check if section is complete
+    const secAnswered = sections[i].questions.filter(q => studentAnswers['q' + q.num]).length;
+    navBtns[i].classList.toggle('has-answers', secAnswered === sections[i].questions.length);
+  }
+
+  // Scroll questions panel to top
+  document.getElementById('questionsPanel').scrollTop = 0;
+  document.getElementById('passagePanel').scrollTop = 0;
+
+  updateProgress();
+}
+
+function selectOption(qNum, value, el) {
+  const parent = el.closest('.question');
+  parent.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  el.querySelector('input').checked = true;
+  studentAnswers['q' + qNum] = value;
+  updateProgress();
+}
+
+function saveWrittenAnswer(qNum, value) {
+  if (value.trim()) {
+    studentAnswers['q' + qNum] = value.trim();
+  } else {
+    delete studentAnswers['q' + qNum];
+  }
+  updateProgress();
+}
+
+function updateProgress() {
+  const answered = Object.keys(studentAnswers).length;
+  const el = document.getElementById('headerProgress');
+  if (el) el.textContent = answered + ' of 38 answered';
+
+  // Update nav completion indicators
+  const navBtns = document.getElementById('sectionNav').children;
+  sections.forEach((sec, i) => {
+    if (navBtns[i]) {
+      const secAnswered = sec.questions.filter(q => studentAnswers['q' + q.num]).length;
+      navBtns[i].classList.toggle('has-answers', secAnswered === sec.questions.length);
+    }
+  });
+
+  // Update submit warning if visible
+  const warning = document.getElementById('submitWarning');
+  if (warning) {
+    const unanswered = 38 - answered;
+    if (unanswered > 0) {
+      warning.textContent = unanswered + ' question' + (unanswered > 1 ? 's' : '') + ' unanswered';
+      warning.style.color = 'var(--incorrect)';
+    } else {
+      warning.textContent = 'All questions answered!';
+      warning.style.color = 'var(--correct)';
+    }
+  }
+}
+
+// ============================================================
+// TIMER
+// ============================================================
+
+function startTimer() {
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    secondsLeft--;
+    if (secondsLeft <= 0) {
+      clearInterval(timerInterval);
+      secondsLeft = 0;
+      submitTest();
+    }
+    updateTimerDisplay();
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(secondsLeft / 60);
+  const s = secondsLeft % 60;
+  const display = m + ':' + (s < 10 ? '0' : '') + s;
+  const timer = document.getElementById('timer');
+  timer.textContent = display;
+  if (secondsLeft <= 300) timer.style.color = '#e74c3c';
+  else if (secondsLeft <= 600) timer.style.color = '#f39c12';
+  else timer.style.color = 'white';
+}
+
+// ============================================================
+// SUBMIT & MARK
+// ============================================================
+
+function submitTest() {
+  clearInterval(timerInterval);
+
+  let score = 0;
+  const totalMC = 37;
+  const results = [];
+
+  for (let i = 1; i <= 38; i++) {
+    const answer = studentAnswers['q' + i] || null;
+    const correct = CORRECT_ANSWERS[i];
+
+    if (i === 37) {
+      results.push({ num: i, answer: answer || '(no answer)', correct: 'written', isCorrect: null, type: 'written' });
+      continue;
+    }
+
+    const isCorrect = answer && answer.toLowerCase() === correct.toLowerCase();
+    if (isCorrect) score++;
+    results.push({ num: i, answer: answer ? answer.toUpperCase() : '\u2014', correct: correct.toUpperCase(), isCorrect, type: 'mc' });
+  }
+
+  const percentage = Math.round((score / totalMC) * 100);
+
+  let html = `
+    <div class="results-header">
+      <h1>Test Complete</h1>
+      <p>${escapeHtml(document.getElementById('studentName').value.trim())} \u2014 ${escapeHtml(document.getElementById('studentClass').value.trim())}</p>
+      <div class="score-display">
+        ${percentage}%
+        <span class="score-fraction">(${score}/${totalMC})</span>
+      </div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:${percentage}%;background:${percentage >= 70 ? 'var(--correct)' : percentage >= 50 ? 'var(--accent)' : 'var(--incorrect)'}"></div></div>
+      <p style="margin-top:12px;color:#666;">Question 37 is a written response and will be marked by your teacher.</p>
+      <div id="sheetsStatus" class="sheets-status sending">Sending results to your teacher...</div>
+    </div>
+    <div class="results-detail">
+      <h2>Question-by-Question Breakdown</h2>
+      <div class="result-row" style="font-weight:700;background:#eaf2f8;">
+        <div class="r-num">#</div>
+        <div class="r-answer">Your Answer</div>
+        <div class="r-correct">Correct</div>
+        <div class="r-icon">Result</div>
+      </div>`;
+
+  results.forEach(r => {
+    if (r.type === 'written') {
+      html += `
+        <div class="result-row" style="background:#fef9e7;">
+          <div class="r-num">Q${r.num}</div>
+          <div class="r-answer" style="font-style:italic;">${escapeHtml(r.answer).substring(0, 100)}${r.answer.length > 100 ? '...' : ''}</div>
+          <div class="r-correct">Teacher marks</div>
+          <div class="r-icon" style="color:var(--accent);">&#9998;</div>
+        </div>`;
+    } else {
+      html += `
+        <div class="result-row ${r.isCorrect ? 'correct' : 'incorrect'}">
+          <div class="r-num">Q${r.num}</div>
+          <div class="r-answer">${r.answer}</div>
+          <div class="r-correct">${r.isCorrect ? '' : r.correct}</div>
+          <div class="r-icon">${r.isCorrect ? '&#10004;' : '&#10008;'}</div>
+        </div>`;
+    }
+  });
+
+  html += `</div>`;
+
+  document.getElementById('resultsContainer').innerHTML = html;
+  showScreen('resultsScreen');
+
+  sendToSheets(score, percentage, totalMC);
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// ============================================================
+// GOOGLE SHEETS - FIXED: use redirect-following fetch
+// ============================================================
+
+function sendToSheets(score, percentage, total) {
+  const url = getSheetUrl();
+  const status = document.getElementById('sheetsStatus');
+
+  if (!url) {
+    status.className = 'sheets-status error';
+    status.textContent = 'Google Sheets not configured. Results saved locally only. Ask your teacher to set up the integration.';
+    saveLocally(score, percentage, total);
+    return;
+  }
+
+  const correctAnswersForSheet = {};
+  for (let i = 1; i <= 38; i++) {
+    correctAnswersForSheet['q' + i] = CORRECT_ANSWERS[i] || '';
+  }
+
+  const payload = {
+    testName: 'NAPLAN 2016 Year 5 Reading',
+    studentName: document.getElementById('studentName').value.trim(),
+    studentClass: document.getElementById('studentClass').value.trim(),
+    score: score,
+    percentage: percentage + '%',
+    totalQuestions: total,
+    writtenQuestions: [37],
+    answers: studentAnswers,
+    correctAnswers: correctAnswersForSheet
+  };
+
+  // Send via both form (handles redirects) and fetch (works on HTTPS like GitHub Pages)
+  submitViaForm(url, payload, status, score, percentage, total);
+}
+
+function submitViaForm(url, payload, statusEl, score, percentage, total) {
+  // Always save locally as backup first
+  saveLocally(score, percentage, total);
+
+  // Create a hidden iframe to receive the form submission response
+  let iframe = document.getElementById('naplan_submit_frame');
+  if (!iframe) {
+    iframe = document.createElement('iframe');
+    iframe.id = 'naplan_submit_frame';
+    iframe.name = 'naplan_submit_frame';
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+  }
+
+  // Method 1: Hidden form POST (handles Google's redirect natively)
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = url;
+  form.target = 'naplan_submit_frame';
+  form.style.display = 'none';
+
+  const input = document.createElement('input');
+  input.type = 'hidden';
+  input.name = 'payload';
+  input.value = JSON.stringify(payload);
+  form.appendChild(input);
+
+  document.body.appendChild(form);
+  form.submit(); // Actually submit the form!
+
+  // Method 2: Also try fetch as backup
+  fetch(url, {
+    method: 'POST',
+    redirect: 'follow',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  }).catch(() => {}); // Silent backup - form submit is the primary method
+
+  // Show success after a short delay (form submission handles redirect)
+  setTimeout(() => {
+    statusEl.className = 'sheets-status success';
+    statusEl.textContent = 'Results sent to your teacher!';
+  }, 2000);
+
+  // Clean up form
+  setTimeout(() => { if (form.parentNode) form.parentNode.removeChild(form); }, 3000);
+}
+
+function saveLocally(score, percentage, total) {
+  try {
+    const results = JSON.parse(localStorage.getItem('naplan_results') || '[]');
+    results.push({
+      timestamp: new Date().toISOString(),
+      studentName: document.getElementById('studentName').value.trim(),
+      studentClass: document.getElementById('studentClass').value.trim(),
+      score, percentage, total,
+      answers: {...studentAnswers}
+    });
+    localStorage.setItem('naplan_results', JSON.stringify(results));
+  } catch(e) { console.warn('Could not save locally:', e); }
+}
+
+// ============================================================
+// TEACHER CONFIG
+// ============================================================
+
+function saveConfig() {
+  const url = document.getElementById('sheetUrl').value.trim();
+  if (url) {
+    localStorage.setItem('naplan_sheet_url', url);
+    document.getElementById('configStatus').innerHTML = '<span style="color:var(--correct);font-weight:600;">&#10004; Configuration saved! Results will be sent to your Google Sheet.</span>';
+  } else {
+    localStorage.removeItem('naplan_sheet_url');
+    document.getElementById('configStatus').innerHTML = '<span style="color:var(--accent);">URL cleared. Results will be saved locally only.</span>';
+  }
+}
+
+function testConnection() {
+  const url = document.getElementById('sheetUrl').value.trim();
+  const status = document.getElementById('configStatus');
+  if (!url) {
+    status.innerHTML = '<span style="color:var(--incorrect);">Please enter a URL first.</span>';
+    return;
+  }
+  status.innerHTML = '<span style="color:var(--accent);">Testing connection...</span>';
+
+  // Send a test payload
+  const testPayload = {
+    studentName: '*** TEST ***',
+    studentClass: 'TEST',
+    score: 0,
+    percentage: '0%',
+    totalQuestions: 37,
+    answers: {},
+    correctAnswers: {}
+  };
+
+  fetch(url, {
+    method: 'POST',
+    redirect: 'follow',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(testPayload)
+  })
+  .then(resp => {
+    // Even if CORS blocks the response, the POST still goes through
+    status.innerHTML = '<span style="color:var(--correct);font-weight:600;">&#10004; Connection successful! Check your Google Sheet for a test row (student name "*** TEST ***"). You can delete it.</span>';
+  })
+  .catch(err => {
+    // With text/plain content type, most browsers will send the request even with CORS issues
+    status.innerHTML = '<span style="color:var(--correct);">&#10004; Test data sent. Please check your Google Sheet for a row with student name "*** TEST ***" to confirm it arrived. If not, double-check your Apps Script deployment settings.</span>';
+  });
+}
+
+function copyScript() {
+  const code = getAppsScriptCode();
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = event.target;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy Code', 2000);
+  }).catch(() => {
+    // Fallback for non-HTTPS contexts
+    const ta = document.createElement('textarea');
+    ta.value = code;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    const btn = event.target;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy Code', 2000);
+  });
+}
+</script>
+</body>
+</html>

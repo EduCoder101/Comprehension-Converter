@@ -1,0 +1,2328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comprehension Test Generator</title>
+<style>
+  :root {
+    --primary: #1a5276;
+    --primary-light: #2980b9;
+    --accent: #e67e22;
+    --correct: #27ae60;
+    --incorrect: #e74c3c;
+    --bg: #f4f6f8;
+    --card: #ffffff;
+    --text: #2c3e50;
+    --border: #dce1e6;
+    --passage-bg: #fefcf5;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* ========== TOP BAR ========== */
+  .top-bar {
+    background: var(--primary);
+    color: white;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .top-bar h1 { font-size: 1.3rem; font-weight: 700; }
+  .top-bar .tagline { font-size: 0.85rem; opacity: 0.8; }
+
+  /* ========== STEP INDICATOR ========== */
+  .step-indicator {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    padding: 20px 16px 12px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+  }
+  .step-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    color: #999;
+    font-weight: 500;
+    position: relative;
+    transition: color 0.3s;
+  }
+  .step-item .step-num {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #ddd;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    transition: background 0.3s;
+    flex-shrink: 0;
+  }
+  .step-item.active { color: var(--primary); font-weight: 600; }
+  .step-item.active .step-num { background: var(--primary); }
+  .step-item.completed { color: var(--correct); }
+  .step-item.completed .step-num { background: var(--correct); }
+  .step-connector {
+    width: 40px;
+    height: 2px;
+    background: #ddd;
+    align-self: center;
+    margin: 0 4px;
+    transition: background 0.3s;
+  }
+  .step-connector.completed { background: var(--correct); }
+
+  /* ========== MAIN CONTAINER ========== */
+  .main-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 24px 16px;
+  }
+
+  /* ========== SETTINGS PANEL ========== */
+  .settings-panel {
+    background: var(--card);
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    cursor: pointer;
+    background: #eaf2f8;
+    border-bottom: 1px solid var(--border);
+    user-select: none;
+  }
+  .settings-header:hover { background: #d6e6f2; }
+  .settings-header h3 { color: var(--primary); font-size: 0.95rem; }
+  .settings-header .toggle-icon { font-size: 1.2rem; color: var(--primary); transition: transform 0.3s; }
+  .settings-header .toggle-icon.open { transform: rotate(180deg); }
+  .settings-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+  }
+  .settings-body.open { max-height: 600px; }
+  .settings-body-inner { padding: 20px; }
+  .settings-row {
+    margin-bottom: 16px;
+  }
+  .settings-row label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+  .settings-row input {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 0.95rem;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    transition: border-color 0.2s;
+  }
+  .settings-row input:focus { border-color: var(--primary-light); outline: none; }
+  .settings-row .help {
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: 4px;
+  }
+  .settings-row .help a { color: var(--primary-light); }
+  .settings-saved {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 8px;
+  }
+  .settings-saved.yes { background: #d5f5e3; color: var(--correct); }
+  .settings-saved.no { background: #fadbd8; color: var(--incorrect); }
+
+  /* ========== CARD ========== */
+  .card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 28px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    margin-bottom: 24px;
+  }
+  .card h2 {
+    color: var(--primary);
+    font-size: 1.2rem;
+    margin-bottom: 16px;
+  }
+
+  /* ========== STEP CONTENT ========== */
+  .step-content { display: none; }
+  .step-content.active { display: block; }
+
+  /* ========== UPLOAD AREA ========== */
+  .upload-zone {
+    border: 3px dashed var(--border);
+    border-radius: 12px;
+    padding: 40px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: #fafbfc;
+    margin-bottom: 16px;
+  }
+  .upload-zone:hover, .upload-zone.dragover {
+    border-color: var(--primary-light);
+    background: #eaf2f8;
+  }
+  .upload-zone .upload-icon { font-size: 2.5rem; margin-bottom: 12px; }
+  .upload-zone p { color: #666; margin-bottom: 8px; }
+  .upload-zone .hint { font-size: 0.85rem; color: #999; }
+
+  .file-list { margin-bottom: 20px; }
+  .file-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: #f0f4f8;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+  }
+  .file-item .file-info { display: flex; align-items: center; gap: 10px; }
+  .file-item .file-icon { font-size: 1.3rem; }
+  .file-item .file-label {
+    font-size: 0.75rem;
+    background: var(--primary);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+  .file-item .remove-btn {
+    background: none;
+    border: none;
+    color: var(--incorrect);
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+  .file-item .remove-btn:hover { background: #fadbd8; }
+
+  .or-divider {
+    text-align: center;
+    padding: 16px 0;
+    color: #999;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .or-divider::before, .or-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .paste-area {
+    margin-bottom: 16px;
+  }
+  .paste-area label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+  .paste-area textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 12px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    resize: vertical;
+    transition: border-color 0.2s;
+  }
+  .paste-area textarea:focus { border-color: var(--primary-light); outline: none; }
+
+  .upload-label-select {
+    padding: 6px 10px;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    background: white;
+    cursor: pointer;
+  }
+
+  /* ========== BUTTONS ========== */
+  .btn {
+    display: inline-block;
+    padding: 12px 28px;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover:not(:disabled) { background: var(--primary-light); }
+  .btn-accent { background: var(--accent); color: white; }
+  .btn-accent:hover:not(:disabled) { background: #d35400; }
+  .btn-outline {
+    background: transparent;
+    color: var(--primary);
+    border: 2px solid var(--primary);
+  }
+  .btn-outline:hover:not(:disabled) { background: var(--primary); color: white; }
+  .btn-sm { padding: 8px 16px; font-size: 0.85rem; }
+  .btn-danger { background: var(--incorrect); color: white; }
+  .btn-danger:hover:not(:disabled) { background: #c0392b; }
+  .btn-success { background: var(--correct); color: white; }
+  .btn-success:hover:not(:disabled) { background: #1e8449; }
+
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  /* ========== LOADING SPINNER ========== */
+  .spinner-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 500;
+    justify-content: center;
+    align-items: center;
+  }
+  .spinner-overlay.active { display: flex; }
+  .spinner-box {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 40px 48px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+  .spinner {
+    width: 48px;
+    height: 48px;
+    border: 5px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner-box p { color: var(--text); font-weight: 500; }
+  .spinner-box .sub { color: #888; font-size: 0.85rem; margin-top: 4px; }
+
+  /* ========== TOAST ========== */
+  .toast-container {
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    z-index: 600;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .toast {
+    padding: 14px 20px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    animation: slideIn 0.3s ease, fadeOut 0.3s ease 3.7s;
+    max-width: 360px;
+  }
+  .toast.success { background: var(--correct); }
+  .toast.error { background: var(--incorrect); }
+  .toast.info { background: var(--primary-light); }
+  @keyframes slideIn { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+  /* ========== REVIEW EDITOR ========== */
+  .section-card {
+    background: var(--card);
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .section-card-header {
+    background: #eaf2f8;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-card-header input {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    border: 2px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--primary);
+    transition: all 0.2s;
+  }
+  .section-card-header input:focus {
+    border-color: var(--primary-light);
+    background: white;
+    outline: none;
+  }
+  .section-card-body { padding: 20px; }
+
+  .passage-editor {
+    position: relative;
+    margin-bottom: 16px;
+  }
+  .passage-editor label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+  .passage-editor textarea {
+    width: 100%;
+    min-height: 200px;
+    padding: 12px;
+    font-size: 0.9rem;
+    font-family: 'Consolas', 'Monaco', monospace;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    resize: vertical;
+    line-height: 1.5;
+  }
+  .passage-editor textarea:focus { border-color: var(--primary-light); outline: none; }
+  .passage-preview {
+    padding: 16px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    background: var(--passage-bg);
+    min-height: 200px;
+    line-height: 1.8;
+    display: none;
+  }
+  .passage-preview p { margin-bottom: 12px; }
+  .passage-preview.active { display: block; }
+  .passage-editor textarea.hidden { display: none; }
+
+  .question-card {
+    background: #fafbfc;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .question-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .question-card-header .q-num-input {
+    width: 60px;
+    padding: 6px 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    text-align: center;
+  }
+  .question-card-header .q-num-input:focus { border-color: var(--primary-light); outline: none; }
+  .question-card-header select {
+    padding: 6px 10px;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    background: white;
+    cursor: pointer;
+  }
+  .question-card-header select:focus { border-color: var(--primary-light); outline: none; }
+  .question-card .q-text-input {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 12px;
+  }
+  .question-card .q-text-input:focus { border-color: var(--primary-light); outline: none; }
+
+  .options-editor { display: flex; flex-direction: column; gap: 8px; }
+  .option-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .option-row .opt-label {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+  }
+  .option-row input[type="text"] {
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 0.9rem;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+  }
+  .option-row input[type="text"]:focus { border-color: var(--primary-light); outline: none; }
+  .option-row input[type="radio"] {
+    accent-color: var(--correct);
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .option-row .correct-label {
+    font-size: 0.75rem;
+    color: #888;
+    width: 50px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .option-row .correct-label.is-correct { color: var(--correct); font-weight: 700; }
+
+  .q-delete-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    color: #ccc;
+    cursor: pointer;
+    font-size: 1.3rem;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+  .q-delete-btn:hover { color: var(--incorrect); background: #fadbd8; }
+
+  .add-question-btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    border: 2px dashed var(--border);
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #888;
+    font-weight: 500;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+  .add-question-btn:hover { border-color: var(--primary-light); color: var(--primary); background: #eaf2f8; }
+
+  /* ========== GENERATE SETTINGS ========== */
+  .generate-settings {
+    display: flex;
+    gap: 16px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .generate-settings .field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .generate-settings label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .generate-settings input, .generate-settings select {
+    padding: 10px 14px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+  }
+  .generate-settings input:focus, .generate-settings select:focus { border-color: var(--primary-light); outline: none; }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 700px) {
+    .step-indicator { padding: 12px 8px; flex-wrap: wrap; gap: 4px; }
+    .step-item { font-size: 0.8rem; padding: 6px 8px; }
+    .step-item .step-label { display: none; }
+    .step-connector { width: 16px; }
+    .main-container { padding: 16px 8px; }
+    .card { padding: 16px; }
+    .generate-settings { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div>
+    <h1>Comprehension Test Generator</h1>
+    <div class="tagline">Upload, parse, review, and generate interactive reading tests</div>
+  </div>
+</div>
+
+<!-- STEP INDICATOR -->
+<div class="step-indicator" id="stepIndicator">
+  <div class="step-item active" data-step="1">
+    <span class="step-num">1</span>
+    <span class="step-label">Upload</span>
+  </div>
+  <div class="step-connector" data-after="1"></div>
+  <div class="step-item" data-step="2">
+    <span class="step-num">2</span>
+    <span class="step-label">AI Processing</span>
+  </div>
+  <div class="step-connector" data-after="2"></div>
+  <div class="step-item" data-step="3">
+    <span class="step-num">3</span>
+    <span class="step-label">Review &amp; Edit</span>
+  </div>
+  <div class="step-connector" data-after="3"></div>
+  <div class="step-item" data-step="4">
+    <span class="step-num">4</span>
+    <span class="step-label">Generate</span>
+  </div>
+</div>
+
+<!-- MAIN CONTAINER -->
+<div class="main-container">
+
+  <!-- SETTINGS PANEL -->
+  <div class="settings-panel" id="settingsPanel">
+    <div class="settings-header" onclick="toggleSettings()">
+      <h3>Settings &amp; API Keys</h3>
+      <span class="toggle-icon" id="settingsToggle">&#9660;</span>
+    </div>
+    <div class="settings-body" id="settingsBody">
+      <div class="settings-body-inner">
+        <div class="settings-row">
+          <label>
+            Gemini API Key
+            <span class="settings-saved" id="apiKeySaved"></span>
+          </label>
+          <input type="password" id="geminiApiKey" placeholder="Enter your Gemini API key" oninput="saveSettings()">
+          <p class="help">
+            Free API key from Google AI Studio.
+            <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Get a free key here</a>
+          </p>
+        </div>
+        <div class="settings-row">
+          <label>
+            Google Sheets Web App URL
+            <span class="settings-saved" id="sheetsUrlSaved"></span>
+          </label>
+          <input type="url" id="sheetsWebAppUrl" placeholder="https://script.google.com/macros/s/.../exec" oninput="saveSettings()">
+          <p class="help">
+            Paste the URL of your deployed Google Apps Script web app. This will be embedded in generated tests so student results are sent automatically.
+            The generated test includes full setup instructions for teachers who have not configured this yet.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 1: UPLOAD -->
+  <div class="step-content active" id="step1">
+    <div class="card">
+      <h2>Upload Test Documents</h2>
+      <p style="color:#666;margin-bottom:20px;">Upload PDF files of the reading passage, question paper, and answer key. You can upload them as separate files or as a single combined document.</p>
+
+      <div class="upload-zone" id="uploadZone"
+           ondragover="event.preventDefault(); this.classList.add('dragover');"
+           ondragleave="this.classList.remove('dragover');"
+           ondrop="handleDrop(event);"
+           onclick="document.getElementById('fileInput').click();">
+        <div class="upload-icon">&#128196;</div>
+        <p><strong>Drag and drop PDF files here</strong></p>
+        <p class="hint">or click to browse your files</p>
+        <input type="file" id="fileInput" accept=".pdf" multiple style="display:none;" onchange="handleFileSelect(event)">
+      </div>
+
+      <div class="file-list" id="fileList"></div>
+
+      <div class="or-divider">OR PASTE TEXT DIRECTLY</div>
+
+      <div class="paste-area">
+        <label>Reading Passage / Magazine</label>
+        <textarea id="pastePassage" placeholder="Paste the reading passage text here (optional if uploading PDFs)..." oninput="checkReadiness()"></textarea>
+      </div>
+      <div class="paste-area">
+        <label>Questions</label>
+        <textarea id="pasteQuestions" placeholder="Paste the questions here (optional if uploading PDFs)..." oninput="checkReadiness()"></textarea>
+      </div>
+      <div class="paste-area">
+        <label>Answer Key</label>
+        <textarea id="pasteAnswers" placeholder="Paste the answer key here (optional)..." oninput="checkReadiness()"></textarea>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="processBtn" onclick="processWithAI()" disabled>
+          Process with AI
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: AI PROCESSING (shown as overlay) -->
+
+  <!-- STEP 3: REVIEW & EDIT -->
+  <div class="step-content" id="step3">
+    <div class="card">
+      <h2>Review &amp; Edit Extracted Content</h2>
+      <p style="color:#666;margin-bottom:20px;">Review the AI-extracted content below. Edit any fields that need correction.</p>
+
+      <div class="settings-row" style="margin-bottom:20px;">
+        <label>Test Title</label>
+        <input type="text" id="editTestTitle" placeholder="Enter the test title" style="padding:12px 14px;font-size:1.1rem;font-weight:600;">
+      </div>
+
+      <div id="sectionsEditor"></div>
+
+      <button class="add-question-btn" onclick="addSection()" style="margin-bottom:20px;">
+        + Add New Section
+      </button>
+
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="goToStep(1)">Back to Upload</button>
+        <button class="btn btn-primary" onclick="goToStep(4)">Continue to Generate</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4: GENERATE -->
+  <div class="step-content" id="step4">
+    <div class="card">
+      <h2>Generate Interactive Test</h2>
+      <p style="color:#666;margin-bottom:20px;">Configure the final test settings and generate a self-contained HTML file that students can open in any browser.</p>
+
+      <div class="generate-settings">
+        <div class="field" style="flex:1;min-width:200px;">
+          <label>Test Title</label>
+          <input type="text" id="genTitle" placeholder="Reading Comprehension Test">
+        </div>
+        <div class="field">
+          <label>Duration (minutes)</label>
+          <input type="number" id="genDuration" value="50" min="5" max="180" style="width:100px;">
+        </div>
+      </div>
+
+      <div id="genSummary" style="margin-bottom:20px;"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="goToStep(3)">Back to Edit</button>
+        <button class="btn btn-accent" onclick="generateTest()" style="font-size:1.1rem;padding:14px 36px;">
+          Generate &amp; Download Test
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- LOADING SPINNER OVERLAY -->
+<div class="spinner-overlay" id="spinnerOverlay">
+  <div class="spinner-box">
+    <div class="spinner"></div>
+    <p id="spinnerText">Processing with Gemini AI...</p>
+    <p class="sub" id="spinnerSub">This may take 15-30 seconds</p>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+
+let uploadedFiles = []; // [{file, label, base64}]
+let extractedData = null; // The parsed JSON from Gemini
+
+// ============================================================
+// INIT
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadSettings();
+  checkReadiness();
+});
+
+// ============================================================
+// SETTINGS
+// ============================================================
+
+function loadSettings() {
+  const apiKey = localStorage.getItem('tg_gemini_api_key') || '';
+  const sheetsUrl = localStorage.getItem('tg_sheets_url') || '';
+  document.getElementById('geminiApiKey').value = apiKey;
+  document.getElementById('sheetsWebAppUrl').value = sheetsUrl;
+  updateSettingsBadges();
+
+  // Auto-collapse if both are set
+  if (apiKey && sheetsUrl) {
+    // keep collapsed
+  } else {
+    document.getElementById('settingsBody').classList.add('open');
+    document.getElementById('settingsToggle').classList.add('open');
+  }
+}
+
+function saveSettings() {
+  const apiKey = document.getElementById('geminiApiKey').value.trim();
+  const sheetsUrl = document.getElementById('sheetsWebAppUrl').value.trim();
+  if (apiKey) localStorage.setItem('tg_gemini_api_key', apiKey);
+  else localStorage.removeItem('tg_gemini_api_key');
+  if (sheetsUrl) localStorage.setItem('tg_sheets_url', sheetsUrl);
+  else localStorage.removeItem('tg_sheets_url');
+  updateSettingsBadges();
+  checkReadiness();
+}
+
+function updateSettingsBadges() {
+  const apiKey = document.getElementById('geminiApiKey').value.trim();
+  const sheetsUrl = document.getElementById('sheetsWebAppUrl').value.trim();
+  const apiEl = document.getElementById('apiKeySaved');
+  const sheetsEl = document.getElementById('sheetsUrlSaved');
+  apiEl.className = 'settings-saved ' + (apiKey ? 'yes' : 'no');
+  apiEl.textContent = apiKey ? 'Saved' : 'Not set';
+  sheetsEl.className = 'settings-saved ' + (sheetsUrl ? 'yes' : 'no');
+  sheetsEl.textContent = sheetsUrl ? 'Saved' : 'Not set';
+}
+
+function toggleSettings() {
+  document.getElementById('settingsBody').classList.toggle('open');
+  document.getElementById('settingsToggle').classList.toggle('open');
+}
+
+// ============================================================
+// FILE UPLOAD
+// ============================================================
+
+function handleDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('dragover');
+  const files = Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf');
+  if (files.length === 0) {
+    showToast('Please drop PDF files only.', 'error');
+    return;
+  }
+  files.forEach(f => addFile(f));
+}
+
+function handleFileSelect(e) {
+  const files = Array.from(e.target.files);
+  files.forEach(f => addFile(f));
+  e.target.value = '';
+}
+
+function addFile(file) {
+  if (uploadedFiles.length >= 3) {
+    showToast('Maximum 3 files allowed. Remove one first.', 'error');
+    return;
+  }
+  if (file.type !== 'application/pdf') {
+    showToast('Only PDF files are supported.', 'error');
+    return;
+  }
+
+  // Auto-assign label
+  let label = 'Combined Document';
+  if (uploadedFiles.length === 0) label = 'Reading Passage';
+  else if (uploadedFiles.length === 1) label = 'Question Paper';
+  else if (uploadedFiles.length === 2) label = 'Answer Key';
+
+  const entry = { file, label, base64: null };
+  uploadedFiles.push(entry);
+
+  // Read as base64
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const bytes = new Uint8Array(ev.target.result);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    entry.base64 = btoa(binary);
+    checkReadiness();
+  };
+  reader.readAsArrayBuffer(file);
+
+  renderFileList();
+  checkReadiness();
+}
+
+function removeFile(index) {
+  uploadedFiles.splice(index, 1);
+  renderFileList();
+  checkReadiness();
+}
+
+function changeFileLabel(index, label) {
+  uploadedFiles[index].label = label;
+}
+
+function renderFileList() {
+  const container = document.getElementById('fileList');
+  if (uploadedFiles.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+  let html = '';
+  uploadedFiles.forEach((entry, i) => {
+    const sizeMB = (entry.file.size / (1024 * 1024)).toFixed(1);
+    html += '<div class="file-item">' +
+      '<div class="file-info">' +
+        '<span class="file-icon">&#128196;</span>' +
+        '<div>' +
+          '<div style="font-weight:600;">' + escapeHtml(entry.file.name) + '</div>' +
+          '<div style="font-size:0.8rem;color:#888;">' + sizeMB + ' MB</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:8px;">' +
+        '<select class="upload-label-select" onchange="changeFileLabel(' + i + ', this.value)">' +
+          '<option value="Reading Passage"' + (entry.label === 'Reading Passage' ? ' selected' : '') + '>Reading Passage</option>' +
+          '<option value="Question Paper"' + (entry.label === 'Question Paper' ? ' selected' : '') + '>Question Paper</option>' +
+          '<option value="Answer Key"' + (entry.label === 'Answer Key' ? ' selected' : '') + '>Answer Key</option>' +
+          '<option value="Combined Document"' + (entry.label === 'Combined Document' ? ' selected' : '') + '>Combined Document</option>' +
+        '</select>' +
+        '<button class="remove-btn" onclick="removeFile(' + i + ')" title="Remove file">&#10005;</button>' +
+      '</div>' +
+    '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function checkReadiness() {
+  const hasFiles = uploadedFiles.length > 0 && uploadedFiles.every(f => f.base64);
+  const hasPassage = document.getElementById('pastePassage').value.trim().length > 0;
+  const hasQuestions = document.getElementById('pasteQuestions').value.trim().length > 0;
+  const hasApiKey = document.getElementById('geminiApiKey').value.trim().length > 0;
+  const ready = hasApiKey && (hasFiles || hasPassage || hasQuestions);
+  document.getElementById('processBtn').disabled = !ready;
+}
+
+// ============================================================
+// AI PROCESSING
+// ============================================================
+
+async function processWithAI() {
+  const apiKey = document.getElementById('geminiApiKey').value.trim();
+  if (!apiKey) {
+    showToast('Please enter your Gemini API key in Settings.', 'error');
+    return;
+  }
+
+  showSpinner('Processing with Gemini AI...', 'This may take 15-30 seconds depending on document size');
+
+  try {
+    const parts = [];
+
+    // Add PDF files as inline_data
+    for (const entry of uploadedFiles) {
+      if (entry.base64) {
+        parts.push({
+          inline_data: {
+            mime_type: 'application/pdf',
+            data: entry.base64
+          }
+        });
+      }
+    }
+
+    // Add pasted text
+    const pastePassage = document.getElementById('pastePassage').value.trim();
+    const pasteQuestions = document.getElementById('pasteQuestions').value.trim();
+    const pasteAnswers = document.getElementById('pasteAnswers').value.trim();
+
+    let contextText = '';
+    if (pastePassage) contextText += '--- READING PASSAGE ---\n' + pastePassage + '\n\n';
+    if (pasteQuestions) contextText += '--- QUESTIONS ---\n' + pasteQuestions + '\n\n';
+    if (pasteAnswers) contextText += '--- ANSWER KEY ---\n' + pasteAnswers + '\n\n';
+
+    // Build the prompt
+    const prompt = `You are a test parser. Analyze these reading comprehension test documents and extract the content as structured JSON.
+
+Return a JSON object with this exact structure:
+{
+  "testTitle": "string - the title/name of the test",
+  "sections": [
+    {
+      "id": 1,
+      "title": "string - passage/section title",
+      "passage": "string - the full reading passage as HTML (use <p>, <em>, <strong>, <ul>, <li> tags for formatting). Preserve all original text exactly. Use <h3> for section headings."
+    }
+  ],
+  "questions": [
+    {
+      "num": 1,
+      "sectionId": 1,
+      "text": "string - the question text (may include HTML for quotes or emphasis)",
+      "type": "mc",
+      "options": {
+        "a": "string - option A text",
+        "b": "string - option B text",
+        "c": "string - option C text",
+        "d": "string - option D text"
+      },
+      "correctAnswer": "a"
+    }
+  ]
+}
+
+Important rules:
+- For multiple choice questions, always extract exactly 4 options (a, b, c, d)
+- For written/open response questions, set type to "written", omit options, and set correctAnswer to "written"
+- For MC questions, correctAnswer should be the lowercase letter (a, b, c, or d)
+- Format passage text as clean HTML with proper paragraph tags
+- Preserve any quotes, italics, bold, or special formatting from the original
+- If the answer key is provided, use it to set correctAnswer. If not, use your best judgement.
+- Group questions by which passage/section they relate to using sectionId
+- Number questions sequentially starting from 1
+- Each section should have a unique incrementing id starting from 1
+- Make sure every question has a valid sectionId matching one of the sections
+- Do NOT include any markdown code fences in the output, just pure JSON
+
+${contextText ? 'Here is additional text content:\n' + contextText : ''}
+
+Parse all the provided documents and return the structured JSON.`;
+
+    parts.push({ text: prompt });
+
+    const response = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: parts }],
+          generationConfig: {
+            response_mime_type: 'application/json'
+          }
+        })
+      }
+    );
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      const errMsg = errData?.error?.message || ('HTTP ' + response.status);
+      throw new Error(errMsg);
+    }
+
+    const data = await response.json();
+
+    // Extract the text content from the response
+    const textContent = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!textContent) {
+      throw new Error('No content returned from Gemini. The response may have been blocked or empty.');
+    }
+
+    // Parse the JSON
+    let parsed;
+    try {
+      // Clean up any markdown fencing just in case
+      let cleaned = textContent.trim();
+      if (cleaned.startsWith('```json')) cleaned = cleaned.slice(7);
+      else if (cleaned.startsWith('```')) cleaned = cleaned.slice(3);
+      if (cleaned.endsWith('```')) cleaned = cleaned.slice(0, -3);
+      parsed = JSON.parse(cleaned.trim());
+    } catch (jsonErr) {
+      throw new Error('Failed to parse JSON from Gemini response. The AI output was not valid JSON.');
+    }
+
+    // Validate structure
+    if (!parsed.sections || !Array.isArray(parsed.sections) || !parsed.questions || !Array.isArray(parsed.questions)) {
+      throw new Error('The AI response is missing required fields (sections and/or questions).');
+    }
+
+    extractedData = parsed;
+    hideSpinner();
+    showToast('Successfully extracted ' + parsed.sections.length + ' sections and ' + parsed.questions.length + ' questions!', 'success');
+    goToStep(3);
+    populateEditor();
+
+  } catch (err) {
+    hideSpinner();
+    showToast('Error: ' + err.message, 'error');
+    console.error('Gemini API error:', err);
+  }
+}
+
+// ============================================================
+// REVIEW & EDIT
+// ============================================================
+
+function populateEditor() {
+  if (!extractedData) return;
+
+  document.getElementById('editTestTitle').value = extractedData.testTitle || 'Reading Comprehension Test';
+  renderSectionsEditor();
+}
+
+function renderSectionsEditor() {
+  const container = document.getElementById('sectionsEditor');
+  let html = '';
+
+  extractedData.sections.forEach((sec, si) => {
+    const sectionQuestions = extractedData.questions.filter(q => q.sectionId === sec.id);
+
+    html += '<div class="section-card" data-section-index="' + si + '">' +
+      '<div class="section-card-header">' +
+        '<input type="text" value="' + escapeAttr(sec.title) + '" onchange="updateSectionTitle(' + si + ', this.value)">' +
+        '<button class="btn btn-danger btn-sm" onclick="deleteSection(' + si + ')" title="Delete section">Delete Section</button>' +
+      '</div>' +
+      '<div class="section-card-body">' +
+        '<div class="passage-editor">' +
+          '<label>' +
+            'Passage Content (HTML)' +
+            '<button class="btn btn-sm btn-outline" onclick="togglePassagePreview(' + si + ')" id="previewBtn_' + si + '">Preview</button>' +
+          '</label>' +
+          '<textarea id="passageText_' + si + '" onchange="updateSectionPassage(' + si + ', this.value)">' + escapeHtml(sec.passage || '') + '</textarea>' +
+          '<div class="passage-preview" id="passagePreview_' + si + '"></div>' +
+        '</div>' +
+        '<h3 style="color:var(--primary);margin-bottom:12px;font-size:1rem;">Questions (' + sectionQuestions.length + ')</h3>';
+
+    sectionQuestions.forEach((q, qi) => {
+      const globalIndex = extractedData.questions.indexOf(q);
+      html += renderQuestionCard(q, globalIndex);
+    });
+
+    html += '<button class="add-question-btn" onclick="addQuestion(' + si + ')">+ Add Question to This Section</button>' +
+      '</div></div>';
+  });
+
+  container.innerHTML = html;
+}
+
+function renderQuestionCard(q, globalIndex) {
+  const sectionOptions = extractedData.sections.map((s, i) =>
+    '<option value="' + s.id + '"' + (q.sectionId === s.id ? ' selected' : '') + '>' + escapeHtml(s.title) + '</option>'
+  ).join('');
+
+  const isMC = q.type !== 'written';
+
+  let html = '<div class="question-card" data-q-index="' + globalIndex + '">' +
+    '<button class="q-delete-btn" onclick="deleteQuestion(' + globalIndex + ')" title="Delete question">&#10005;</button>' +
+    '<div class="question-card-header">' +
+      '<label style="font-size:0.8rem;color:#888;margin:0;">Q#</label>' +
+      '<input type="number" class="q-num-input" value="' + q.num + '" onchange="updateQuestion(' + globalIndex + ', \'num\', parseInt(this.value))">' +
+      '<select onchange="updateQuestion(' + globalIndex + ', \'sectionId\', parseInt(this.value))">' + sectionOptions + '</select>' +
+      '<select onchange="changeQuestionType(' + globalIndex + ', this.value)">' +
+        '<option value="mc"' + (isMC ? ' selected' : '') + '>Multiple Choice</option>' +
+        '<option value="written"' + (!isMC ? ' selected' : '') + '>Written Response</option>' +
+      '</select>' +
+    '</div>' +
+    '<input type="text" class="q-text-input" value="' + escapeAttr(q.text) + '" onchange="updateQuestion(' + globalIndex + ', \'text\', this.value)" placeholder="Question text...">';
+
+  if (isMC) {
+    html += '<div class="options-editor">';
+    const optKeys = ['a', 'b', 'c', 'd'];
+    optKeys.forEach(key => {
+      const optVal = (q.options && q.options[key]) || '';
+      const isCorrect = q.correctAnswer === key;
+      html += '<div class="option-row">' +
+        '<span class="opt-label">' + key.toUpperCase() + '</span>' +
+        '<input type="text" value="' + escapeAttr(optVal) + '" onchange="updateOption(' + globalIndex + ', \'' + key + '\', this.value)" placeholder="Option ' + key.toUpperCase() + '">' +
+        '<input type="radio" name="correct_' + globalIndex + '" value="' + key + '"' + (isCorrect ? ' checked' : '') + ' onchange="updateQuestion(' + globalIndex + ', \'correctAnswer\', \'' + key + '\')" title="Mark as correct answer">' +
+        '<span class="correct-label' + (isCorrect ? ' is-correct' : '') + '">' + (isCorrect ? 'Correct' : '') + '</span>' +
+      '</div>';
+    });
+    html += '</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+function updateSectionTitle(index, value) {
+  extractedData.sections[index].title = value;
+}
+
+function updateSectionPassage(index, value) {
+  extractedData.sections[index].passage = value;
+}
+
+function togglePassagePreview(index) {
+  const textarea = document.getElementById('passageText_' + index);
+  const preview = document.getElementById('passagePreview_' + index);
+  const btn = document.getElementById('previewBtn_' + index);
+
+  if (preview.classList.contains('active')) {
+    preview.classList.remove('active');
+    textarea.classList.remove('hidden');
+    btn.textContent = 'Preview';
+  } else {
+    preview.innerHTML = textarea.value;
+    preview.classList.add('active');
+    textarea.classList.add('hidden');
+    btn.textContent = 'Edit HTML';
+  }
+}
+
+function updateQuestion(globalIndex, field, value) {
+  extractedData.questions[globalIndex][field] = value;
+  if (field === 'sectionId') {
+    renderSectionsEditor();
+  }
+}
+
+function updateOption(globalIndex, key, value) {
+  if (!extractedData.questions[globalIndex].options) {
+    extractedData.questions[globalIndex].options = { a: '', b: '', c: '', d: '' };
+  }
+  extractedData.questions[globalIndex].options[key] = value;
+}
+
+function changeQuestionType(globalIndex, type) {
+  const q = extractedData.questions[globalIndex];
+  q.type = type;
+  if (type === 'written') {
+    q.correctAnswer = 'written';
+    delete q.options;
+  } else {
+    if (!q.options) q.options = { a: '', b: '', c: '', d: '' };
+    if (q.correctAnswer === 'written') q.correctAnswer = 'a';
+  }
+  renderSectionsEditor();
+}
+
+function deleteQuestion(globalIndex) {
+  if (!confirm('Delete this question?')) return;
+  extractedData.questions.splice(globalIndex, 1);
+  // Renumber
+  extractedData.questions.forEach((q, i) => q.num = i + 1);
+  renderSectionsEditor();
+}
+
+function addQuestion(sectionIndex) {
+  const sec = extractedData.sections[sectionIndex];
+  const nextNum = extractedData.questions.length > 0
+    ? Math.max(...extractedData.questions.map(q => q.num)) + 1
+    : 1;
+
+  extractedData.questions.push({
+    num: nextNum,
+    sectionId: sec.id,
+    text: '',
+    type: 'mc',
+    options: { a: '', b: '', c: '', d: '' },
+    correctAnswer: 'a'
+  });
+
+  renderSectionsEditor();
+  showToast('Question ' + nextNum + ' added.', 'info');
+}
+
+function addSection() {
+  const nextId = extractedData.sections.length > 0
+    ? Math.max(...extractedData.sections.map(s => s.id)) + 1
+    : 1;
+
+  extractedData.sections.push({
+    id: nextId,
+    title: 'New Section',
+    passage: '<p>Enter the reading passage here...</p>'
+  });
+
+  renderSectionsEditor();
+  showToast('New section added.', 'info');
+}
+
+function deleteSection(sectionIndex) {
+  const sec = extractedData.sections[sectionIndex];
+  const relatedQs = extractedData.questions.filter(q => q.sectionId === sec.id);
+  const msg = 'Delete this section' + (relatedQs.length > 0 ? ' and its ' + relatedQs.length + ' questions' : '') + '?';
+  if (!confirm(msg)) return;
+
+  extractedData.questions = extractedData.questions.filter(q => q.sectionId !== sec.id);
+  extractedData.sections.splice(sectionIndex, 1);
+  // Renumber questions
+  extractedData.questions.forEach((q, i) => q.num = i + 1);
+  renderSectionsEditor();
+  showToast('Section deleted.', 'info');
+}
+
+// ============================================================
+// STEP NAVIGATION
+// ============================================================
+
+function goToStep(step) {
+  // Update step content visibility
+  document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+  const stepEl = document.getElementById('step' + step);
+  if (stepEl) stepEl.classList.add('active');
+
+  // Update step indicator
+  document.querySelectorAll('.step-item').forEach(el => {
+    const s = parseInt(el.getAttribute('data-step'));
+    el.classList.remove('active', 'completed');
+    if (s === step) el.classList.add('active');
+    else if (s < step) el.classList.add('completed');
+  });
+  document.querySelectorAll('.step-connector').forEach(el => {
+    const afterStep = parseInt(el.getAttribute('data-after'));
+    el.classList.toggle('completed', afterStep < step);
+  });
+
+  // If going to step 4, populate the generate summary
+  if (step === 4 && extractedData) {
+    const title = document.getElementById('editTestTitle').value || extractedData.testTitle || 'Reading Comprehension Test';
+    document.getElementById('genTitle').value = title;
+
+    const mcCount = extractedData.questions.filter(q => q.type !== 'written').length;
+    const writtenCount = extractedData.questions.filter(q => q.type === 'written').length;
+
+    document.getElementById('genSummary').innerHTML =
+      '<div style="background:#eaf2f8;padding:16px;border-radius:8px;">' +
+      '<h3 style="color:var(--primary);margin-bottom:8px;">Test Summary</h3>' +
+      '<p><strong>Sections:</strong> ' + extractedData.sections.length + '</p>' +
+      '<p><strong>Multiple Choice Questions:</strong> ' + mcCount + '</p>' +
+      '<p><strong>Written Response Questions:</strong> ' + writtenCount + '</p>' +
+      '<p><strong>Total Questions:</strong> ' + extractedData.questions.length + '</p>' +
+      (document.getElementById('sheetsWebAppUrl').value.trim()
+        ? '<p style="color:var(--correct);margin-top:8px;"><strong>&#10004;</strong> Google Sheets integration will be included</p>'
+        : '<p style="color:var(--accent);margin-top:8px;">&#9888; No Google Sheets URL set - results will only save locally</p>') +
+      '</div>';
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ============================================================
+// GENERATE TEST
+// ============================================================
+
+function generateTest() {
+  if (!extractedData) {
+    showToast('No test data to generate. Please process documents first.', 'error');
+    return;
+  }
+
+  const testTitle = document.getElementById('genTitle').value.trim() || 'Reading Comprehension Test';
+  const duration = parseInt(document.getElementById('genDuration').value) || 50;
+  const sheetsUrl = document.getElementById('sheetsWebAppUrl').value.trim();
+
+  // Collect data from editor
+  const title = testTitle;
+  const sections = extractedData.sections;
+  const questions = extractedData.questions;
+
+  // Build CORRECT_ANSWERS object
+  const totalQ = questions.length;
+  const mcQuestions = questions.filter(q => q.type !== 'written');
+  const writtenQuestions = questions.filter(q => q.type === 'written');
+  const totalMC = mcQuestions.length;
+
+  // Build sections data for the template
+  let sectionsJS = 'const sections = [\n';
+  sections.forEach((sec, si) => {
+    const secQuestions = questions.filter(q => q.sectionId === sec.id);
+    const qNums = secQuestions.map(q => q.num);
+    const qRange = qNums.length > 0 ? 'Questions ' + Math.min(...qNums) + '\u2013' + Math.max(...qNums) : 'No questions';
+
+    sectionsJS += '  {\n';
+    sectionsJS += '    title: ' + JSON.stringify(sec.title + ' (' + qRange + ')') + ',\n';
+    sectionsJS += '    shortTitle: ' + JSON.stringify(sec.title) + ',\n';
+    sectionsJS += '    passage: ' + JSON.stringify(sec.passage || '') + ',\n';
+    sectionsJS += '    questions: [\n';
+
+    secQuestions.forEach(q => {
+      if (q.type === 'written') {
+        sectionsJS += '      { num:' + q.num + ', text:' + JSON.stringify(q.text) + ', type:"written" },\n';
+      } else {
+        sectionsJS += '      { num:' + q.num + ', text:' + JSON.stringify(q.text) + ', options:{';
+        const opts = q.options || {};
+        sectionsJS += 'a:' + JSON.stringify(opts.a || '') + ',';
+        sectionsJS += 'b:' + JSON.stringify(opts.b || '') + ',';
+        sectionsJS += 'c:' + JSON.stringify(opts.c || '') + ',';
+        sectionsJS += 'd:' + JSON.stringify(opts.d || '');
+        sectionsJS += '} },\n';
+      }
+    });
+
+    sectionsJS += '    ]\n';
+    sectionsJS += '  },\n';
+  });
+  sectionsJS += '];\n';
+
+  // Build CORRECT_ANSWERS
+  let answersJS = 'const CORRECT_ANSWERS = {\n';
+  questions.forEach(q => {
+    if (q.type === 'written') {
+      answersJS += '  ' + q.num + ':"written",\n';
+    } else {
+      answersJS += '  ' + q.num + ':"' + (q.correctAnswer || 'a') + '",\n';
+    }
+  });
+  answersJS += '};\n';
+
+  // Build the written question numbers array
+  const writtenNums = writtenQuestions.map(q => q.num);
+  const writtenNumsJS = 'const WRITTEN_QUESTIONS = [' + writtenNums.join(',') + '];\n';
+
+  // Build the Apps Script code generator
+  const appsScriptCode = generateAppsScriptCode(questions);
+
+  // Build the complete HTML
+  const html = buildTestHTML({
+    title,
+    duration,
+    totalQ,
+    totalMC,
+    sheetsUrl,
+    sectionsJS,
+    answersJS,
+    writtenNumsJS,
+    writtenNums,
+    appsScriptCode
+  });
+
+  // Download
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = slugify(title) + '.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showToast('Test file downloaded! Students can open it in any browser.', 'success');
+}
+
+function generateAppsScriptCode(questions) {
+  // This now returns a UNIVERSAL Apps Script that routes to per-test tabs
+  return `function doPost(e) {
+  var lock = LockService.getScriptLock();
+  lock.tryLock(10000);
+
+  try {
+    var raw = '';
+    if (e.postData && e.postData.contents) raw = e.postData.contents;
+    if (e.parameter && e.parameter.payload) raw = e.parameter.payload;
+
+    var data = JSON.parse(raw);
+
+    // Route to a sheet tab based on testName (creates tab if it doesn't exist)
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var tabName = (data.testName || 'General').substring(0, 100);
+    var sheet = ss.getSheetByName(tabName);
+    if (!sheet) {
+      sheet = ss.insertSheet(tabName);
+    }
+
+    var totalQ = data.totalQuestions || 38;
+    var writtenQs = data.writtenQuestions || [];
+
+    // Create headers if tab is empty
+    if (sheet.getLastRow() === 0) {
+      var headers = ['Timestamp', 'Student Name', 'Class', 'Score', 'Percentage', 'Total Questions'];
+      for (var i = 1; i <= totalQ; i++) {
+        headers.push('Q' + i);
+      }
+      for (var w = 0; w < writtenQs.length; w++) {
+        headers.push('Q' + writtenQs[w] + ' Written Response');
+      }
+      sheet.appendRow(headers);
+      sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+      sheet.setFrozenRows(1);
+    }
+
+    var answers = data.answers || {};
+    var correctAnswers = data.correctAnswers || {};
+
+    var row = [
+      new Date().toLocaleString('en-AU'),
+      data.studentName || '',
+      data.studentClass || '',
+      data.score || 0,
+      data.percentage || '0%',
+      totalQ
+    ];
+
+    for (var i = 1; i <= totalQ; i++) {
+      var ans = answers['q' + i] || '';
+      var correct = correctAnswers['q' + i] || '';
+      if (writtenQs.indexOf(i) > -1) {
+        row.push(ans ? 'See written' : '');
+      } else {
+        row.push(ans === correct ? '\\u2713 ' + ans.toUpperCase() : '\\u2717 ' + (ans ? ans.toUpperCase() : '-') + ' (' + correct.toUpperCase() + ')');
+      }
+    }
+
+    for (var w = 0; w < writtenQs.length; w++) {
+      row.push(answers['q' + writtenQs[w]] || '');
+    }
+
+    sheet.appendRow(row);
+  } finally {
+    lock.releaseLock();
+  }
+
+  return ContentService
+    .createTextOutput(JSON.stringify({status: 'ok'}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet(e) {
+  // Return all sheet tab names and their data for the analyser
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheets = ss.getSheets();
+  var result = { tests: [] };
+
+  for (var s = 0; s < sheets.length; s++) {
+    var sheet = sheets[s];
+    var data = sheet.getDataRange().getValues();
+    if (data.length < 2) continue;
+
+    result.tests.push({
+      name: sheet.getName(),
+      headers: data[0],
+      rows: data.slice(1)
+    });
+  }
+
+  return ContentService
+    .createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+}`;
+}
+
+function buildTestHTML(config) {
+  const { title, duration, totalQ, totalMC, sheetsUrl, sectionsJS, answersJS, writtenNumsJS, writtenNums, appsScriptCode } = config;
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${escapeHtml(title)}</title>
+<style>
+  :root {
+    --primary: #1a5276;
+    --primary-light: #2980b9;
+    --accent: #e67e22;
+    --correct: #27ae60;
+    --incorrect: #e74c3c;
+    --bg: #f4f6f8;
+    --card: #ffffff;
+    --text: #2c3e50;
+    --border: #dce1e6;
+    --passage-bg: #fefcf5;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .start-container {
+    max-width: 560px; margin: 80px auto; background: var(--card);
+    border-radius: 12px; padding: 48px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    text-align: center;
+  }
+  .start-container h1 { color: var(--primary); font-size: 1.8rem; margin-bottom: 8px; }
+  .start-container .subtitle { color: #666; margin-bottom: 32px; font-size: 1rem; }
+  .start-container input[type="text"] {
+    width: 100%; padding: 14px 16px; font-size: 1.1rem; border: 2px solid var(--border);
+    border-radius: 8px; margin-bottom: 12px; transition: border-color 0.2s;
+  }
+  .start-container input:focus { border-color: var(--primary-light); outline: none; }
+  .start-container .class-input { margin-bottom: 24px; }
+
+  .btn {
+    display: inline-block; padding: 14px 36px; font-size: 1.1rem; font-weight: 600;
+    border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: var(--primary-light); }
+  .btn-primary:disabled { background: #bdc3c7; cursor: not-allowed; }
+  .btn-accent { background: var(--accent); color: white; }
+  .btn-accent:hover { background: #d35400; }
+
+  .test-header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: var(--primary);
+    color: white; padding: 10px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .test-header .student-info { font-size: 0.9rem; opacity: 0.9; }
+  .test-header .progress { font-weight: 600; font-size: 0.95rem; }
+  .timer { font-variant-numeric: tabular-nums; font-size: 1.1rem; font-weight: 600; }
+
+  .section-nav-bar {
+    position: fixed; top: 48px; left: 0; right: 0; z-index: 99;
+    background: var(--card); border-bottom: 1px solid var(--border);
+    padding: 8px 16px; display: flex; flex-wrap: wrap; gap: 6px;
+    justify-content: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .section-nav-bar button {
+    padding: 6px 14px; border: 2px solid var(--border); background: var(--card);
+    border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.15s;
+  }
+  .section-nav-bar button:hover { border-color: var(--primary-light); }
+  .section-nav-bar button.active { border-color: var(--primary); background: var(--primary); color: white; }
+  .section-nav-bar button.has-answers { border-color: var(--correct); }
+
+  .test-body {
+    margin-top: 100px;
+    display: flex;
+    height: calc(100vh - 100px);
+  }
+
+  .passage-panel {
+    width: 45%;
+    min-width: 350px;
+    background: var(--passage-bg);
+    border-right: 2px solid var(--border);
+    overflow-y: auto;
+    padding: 28px;
+    position: sticky;
+    top: 100px;
+    height: calc(100vh - 100px);
+  }
+  .passage-panel h3 { color: var(--primary); margin-bottom: 14px; font-size: 1.2rem; }
+  .passage-panel p { margin-bottom: 12px; line-height: 1.85; font-size: 0.98rem; }
+  .passage-panel .footnote { font-size: 0.85rem; color: #888; font-style: italic; margin-top: 12px; }
+  .passage-panel .intro { font-style: italic; color: #555; margin-bottom: 16px; }
+  .passage-panel ul { margin-left: 24px; margin-bottom: 12px; }
+  .passage-panel ul li { margin-bottom: 8px; line-height: 1.7; }
+  .passage-panel .sign-footer { margin-top: 16px; font-size: 0.85rem; color: #888; font-style: italic; }
+  .passage-panel .book-blurb { background: #f0ece3; padding: 16px; border-radius: 8px; margin: 16px 0; font-style: italic; }
+  .passage-panel .reviewer { font-weight: 600; margin-top: 12px; text-align: right; }
+
+  .questions-panel {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px;
+    height: calc(100vh - 100px);
+  }
+
+  .section-title {
+    font-size: 1.2rem; color: var(--primary); margin-bottom: 16px;
+    padding-bottom: 10px; border-bottom: 2px solid var(--border);
+  }
+
+  .question {
+    padding: 18px 0; border-bottom: 1px solid var(--border);
+  }
+  .question:last-child { border-bottom: none; }
+  .question-text { font-weight: 600; margin-bottom: 12px; font-size: 1rem; }
+  .question-text .q-num { color: var(--primary-light); margin-right: 4px; }
+  .question-text .quote { font-style: italic; font-weight: 400; color: #555; }
+
+  .options { display: flex; flex-direction: column; gap: 8px; }
+  .option {
+    display: flex; align-items: flex-start; padding: 10px 14px; border: 2px solid var(--border);
+    border-radius: 8px; cursor: pointer; transition: all 0.15s;
+  }
+  .option:hover { border-color: var(--primary-light); background: #f0f4f8; }
+  .option.selected { border-color: var(--primary); background: #eaf2f8; }
+  .option input[type="radio"] { margin-right: 10px; margin-top: 3px; accent-color: var(--primary); }
+  .option label { cursor: pointer; flex: 1; }
+
+  .text-answer { margin-top: 8px; }
+  .text-answer textarea {
+    width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px;
+    font-size: 1rem; font-family: inherit; resize: vertical; min-height: 80px;
+  }
+  .text-answer textarea:focus { border-color: var(--primary-light); outline: none; }
+
+  .nav-buttons {
+    display: flex; justify-content: space-between; margin-top: 24px; gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .submit-section {
+    text-align: center; padding: 24px 0; margin-top: 12px;
+    border-top: 2px solid var(--border);
+  }
+  .submit-section .warning { color: var(--incorrect); margin-bottom: 12px; font-weight: 500; }
+
+  .results-container { max-width: 800px; margin: 0 auto; padding: 20px; }
+  .results-header {
+    background: var(--card); border-radius: 12px; padding: 36px;
+    text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 24px;
+  }
+  .results-header h1 { color: var(--primary); margin-bottom: 8px; }
+  .score-display { font-size: 3.5rem; font-weight: 700; margin: 16px 0; }
+  .score-display .score-fraction { font-size: 1.5rem; color: #666; font-weight: 400; }
+  .score-bar { height: 12px; background: #ecf0f1; border-radius: 6px; overflow: hidden; margin: 16px auto; max-width: 400px; }
+  .score-bar-fill { height: 100%; border-radius: 6px; transition: width 1s ease; }
+
+  .results-detail {
+    background: var(--card); border-radius: 12px; padding: 28px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06); margin-bottom: 24px;
+  }
+  .results-detail h2 { color: var(--primary); margin-bottom: 16px; font-size: 1.2rem; }
+  .result-row {
+    display: flex; align-items: center; padding: 10px 12px;
+    border-radius: 6px; margin-bottom: 4px; font-size: 0.95rem;
+  }
+  .result-row:nth-child(odd) { background: #f8f9fa; }
+  .result-row .r-num { width: 50px; font-weight: 600; color: var(--primary); }
+  .result-row .r-answer { flex: 1; }
+  .result-row .r-correct { width: 120px; text-align: center; }
+  .result-row .r-icon { width: 30px; text-align: center; font-size: 1.2rem; }
+  .result-row.correct .r-icon { color: var(--correct); }
+  .result-row.incorrect .r-icon { color: var(--incorrect); }
+  .result-row.incorrect .r-correct { color: var(--correct); font-weight: 600; }
+
+  .sheets-status {
+    text-align: center; padding: 16px; margin-top: 16px;
+    border-radius: 8px; font-weight: 500;
+  }
+  .sheets-status.success { background: #d5f5e3; color: var(--correct); }
+  .sheets-status.error { background: #fadbd8; color: var(--incorrect); }
+  .sheets-status.sending { background: #fef9e7; color: var(--accent); }
+
+  .teacher-link {
+    position: fixed; bottom: 20px; right: 20px; background: var(--primary);
+    color: white; padding: 10px 16px; border-radius: 8px; font-size: 0.85rem;
+    cursor: pointer; z-index: 200; text-decoration: none; border: none;
+  }
+  .teacher-link:hover { background: var(--primary-light); }
+
+  .dashboard-container { max-width: 900px; margin: 0 auto; padding: 20px; }
+  .config-box {
+    background: var(--card); border-radius: 12px; padding: 28px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 24px;
+  }
+  .config-box h2 { color: var(--primary); margin-bottom: 16px; }
+  .config-box p { margin-bottom: 12px; color: #555; font-size: 0.95rem; }
+  .config-box input[type="text"], .config-box input[type="url"] {
+    width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px;
+    font-size: 1rem; margin-bottom: 8px;
+  }
+  .config-box input:focus { border-color: var(--primary-light); outline: none; }
+  .config-box .help { font-size: 0.85rem; color: #888; margin-top: 4px; }
+
+  .instructions-box {
+    background: #eaf2f8; border-radius: 8px; padding: 20px; margin-top: 16px;
+  }
+  .instructions-box h3 { color: var(--primary); margin-bottom: 8px; }
+  .instructions-box ol { padding-left: 20px; }
+  .instructions-box ol li { margin-bottom: 8px; font-size: 0.95rem; color: #444; }
+  .code-block {
+    background: #2c3e50; color: #ecf0f1; padding: 16px; border-radius: 8px;
+    font-family: 'Consolas', monospace; font-size: 0.85rem; overflow-x: auto;
+    margin: 12px 0; white-space: pre; line-height: 1.5;
+  }
+
+  @media (max-width: 900px) {
+    .test-body { flex-direction: column; height: auto; }
+    .passage-panel {
+      width: 100%; min-width: unset; position: relative; top: auto;
+      height: 40vh; border-right: none; border-bottom: 2px solid var(--border);
+    }
+    .questions-panel { height: auto; overflow-y: visible; }
+    .start-container { margin: 20px; padding: 28px; }
+    .score-display { font-size: 2.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<div id="startScreen" class="screen active">
+  <div class="start-container">
+    <h1>${escapeHtml(title)}</h1>
+    <p class="subtitle">${duration} Minutes &mdash; ${totalQ} Questions</p>
+    <input type="text" id="studentName" placeholder="Enter your full name" autofocus>
+    <input type="text" id="studentClass" class="class-input" placeholder="Enter your class (e.g. 5B)">
+    <br>
+    <button class="btn btn-primary" id="startBtn" onclick="startTest()" disabled>Begin Test</button>
+  </div>
+</div>
+
+<div id="testScreen" class="screen">
+  <div class="test-header">
+    <div>
+      <div class="student-info" id="headerStudent"></div>
+      <div class="progress" id="headerProgress">0 of ${totalQ} answered</div>
+    </div>
+    <div class="timer" id="timer">${duration}:00</div>
+  </div>
+  <div class="section-nav-bar" id="sectionNav"></div>
+  <div class="test-body">
+    <div class="passage-panel" id="passagePanel"></div>
+    <div class="questions-panel" id="questionsPanel"></div>
+  </div>
+</div>
+
+<div id="resultsScreen" class="screen">
+  <div class="results-container" id="resultsContainer"></div>
+</div>
+
+<div id="dashboardScreen" class="screen">
+  <div class="dashboard-container">
+    <h1 style="color:var(--primary);margin-bottom:24px;">Teacher Setup</h1>
+    <div class="config-box">
+      <h2>Google Sheets Integration</h2>
+      <p>Student results are automatically sent to a Google Sheet. Follow the steps below to set it up (one-time only).</p>
+      <div class="instructions-box">
+        <h3>Setup Instructions</h3>
+        <ol>
+          <li>Open <strong>Google Sheets</strong> and create a new spreadsheet.</li>
+          <li>Name it something like <strong>"${escapeHtml(title)} Results"</strong>.</li>
+          <li>Go to <strong>Extensions &gt; Apps Script</strong>.</li>
+          <li>Delete any code in the editor and paste the code shown below.</li>
+          <li>Click <strong>Deploy &gt; New deployment</strong>.</li>
+          <li>Set type to <strong>"Web app"</strong>.</li>
+          <li>Set <strong>"Execute as"</strong> to <strong>Me</strong>.</li>
+          <li>Set <strong>"Who has access"</strong> to <strong>Anyone</strong>.</li>
+          <li>Click <strong>Deploy</strong>, then <strong>Authorize access</strong> when prompted.</li>
+          <li>Copy the <strong>Web app URL</strong> and paste it below.</li>
+        </ol>
+      </div>
+      <h3 style="margin-top:20px;color:var(--primary);">Apps Script Code</h3>
+      <p style="font-size:0.9rem;color:#666;">Copy and paste this entire block into the Apps Script editor:</p>
+      <div class="code-block" id="appsScriptCode"></div>
+      <button class="btn btn-primary" style="margin-top:8px;padding:8px 16px;font-size:0.9rem;" onclick="copyScript()">Copy Code</button>
+      <h3 style="margin-top:24px;color:var(--primary);">Web App URL</h3>
+      <input type="url" id="sheetUrl" placeholder="Paste your Google Apps Script Web App URL here" value="">
+      <p class="help">This URL starts with https://script.google.com/macros/...</p>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="btn btn-primary" onclick="saveConfig()">Save Configuration</button>
+        <button class="btn btn-accent" onclick="testConnection()">Test Connection</button>
+      </div>
+      <div id="configStatus" style="margin-top:12px;"></div>
+    </div>
+    <div class="config-box">
+      <h2>Share With Students</h2>
+      <p>Once configured, share this HTML file with students via your LMS, shared drive, or web hosting.</p>
+      <button class="btn btn-primary" onclick="showScreen('startScreen')" style="margin-top:8px;">Back to Test</button>
+    </div>
+  </div>
+</div>
+
+<button class="teacher-link" onclick="showScreen('dashboardScreen')">Teacher Setup</button>
+
+<script>
+${answersJS}
+
+${writtenNumsJS}
+
+${sectionsJS}
+
+const TOTAL_QUESTIONS = ${totalQ};
+const TOTAL_MC = ${totalMC};
+const TEST_DURATION = ${duration};
+const TEST_NAME = ${JSON.stringify(title)};
+
+const EMBEDDED_SHEET_URL = ${JSON.stringify(sheetsUrl)};
+
+let studentAnswers = {};
+let timerInterval = null;
+let secondsLeft = TEST_DURATION * 60;
+let currentSection = 0;
+
+function getSheetUrl() {
+  return localStorage.getItem('test_sheet_url_' + location.pathname) || EMBEDDED_SHEET_URL || '';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  var nameInput = document.getElementById('studentName');
+  var classInput = document.getElementById('studentClass');
+  var startBtn = document.getElementById('startBtn');
+
+  function checkReady() {
+    startBtn.disabled = !(nameInput.value.trim() && classInput.value.trim());
+  }
+  nameInput.addEventListener('input', checkReady);
+  classInput.addEventListener('input', checkReady);
+  nameInput.addEventListener('keydown', function(e) { if (e.key === 'Enter' && !startBtn.disabled) startTest(); });
+  classInput.addEventListener('keydown', function(e) { if (e.key === 'Enter' && !startBtn.disabled) startTest(); });
+
+  var savedUrl = localStorage.getItem('test_sheet_url_' + location.pathname);
+  if (savedUrl) document.getElementById('sheetUrl').value = savedUrl;
+
+  document.getElementById('appsScriptCode').textContent = getAppsScriptCode();
+  buildSectionNav();
+  showSection(0);
+});
+
+function getAppsScriptCode() {
+  return ${JSON.stringify(appsScriptCode)};
+}
+
+function buildSectionNav() {
+  var nav = document.getElementById('sectionNav');
+  nav.innerHTML = '';
+  sections.forEach(function(sec, si) {
+    var btn = document.createElement('button');
+    btn.textContent = sec.shortTitle;
+    btn.onclick = function() { showSection(si); };
+    if (si === 0) btn.classList.add('active');
+    nav.appendChild(btn);
+  });
+}
+
+function buildQuestionsForSection(sec) {
+  var html = '<h2 class="section-title">' + sec.title + '</h2>';
+
+  sec.questions.forEach(function(q) {
+    if (q.type === 'written') {
+      var savedVal = studentAnswers['q' + q.num] || '';
+      html += '<div class="question" id="question-' + q.num + '">' +
+        '<div class="question-text"><span class="q-num">Q' + q.num + '.</span> ' + q.text + '</div>' +
+        '<div class="text-answer">' +
+          '<textarea id="answer-' + q.num + '" placeholder="Write your answer here..." oninput="saveWrittenAnswer(' + q.num + ', this.value)">' + escapeHtml(savedVal) + '</textarea>' +
+        '</div></div>';
+    } else {
+      var optionsHtml = '';
+      var keys = ['a', 'b', 'c', 'd'];
+      keys.forEach(function(key) {
+        if (!q.options[key] && q.options[key] !== '') return;
+        var selected = studentAnswers['q' + q.num] === key ? ' selected' : '';
+        var checked = studentAnswers['q' + q.num] === key ? ' checked' : '';
+        optionsHtml += '<div class="option' + selected + '" onclick="selectOption(' + q.num + ', \\'' + key + '\\', this)">' +
+          '<input type="radio" name="q' + q.num + '" id="q' + q.num + '_' + key + '" value="' + key + '"' + checked + '>' +
+          '<label for="q' + q.num + '_' + key + '"><strong>' + key.toUpperCase() + '.</strong> ' + q.options[key] + '</label>' +
+        '</div>';
+      });
+      html += '<div class="question" id="question-' + q.num + '">' +
+        '<div class="question-text"><span class="q-num">Q' + q.num + '.</span> ' + q.text + '</div>' +
+        '<div class="options">' + optionsHtml + '</div></div>';
+    }
+  });
+
+  var si = sections.indexOf(sec);
+  html += '<div class="nav-buttons">';
+  html += si > 0
+    ? '<button class="btn btn-primary" onclick="showSection(' + (si - 1) + ')">&laquo; Previous</button>'
+    : '<span></span>';
+  html += si < sections.length - 1
+    ? '<button class="btn btn-primary" onclick="showSection(' + (si + 1) + ')">Next &raquo;</button>'
+    : '<span></span>';
+  html += '</div>';
+
+  var answered = Object.keys(studentAnswers).length;
+  var unanswered = TOTAL_QUESTIONS - answered;
+  html += '<div class="submit-section">' +
+    '<div class="warning" id="submitWarning" style="color:' + (unanswered > 0 ? 'var(--incorrect)' : 'var(--correct)') + '">' +
+      (unanswered > 0 ? unanswered + ' question' + (unanswered > 1 ? 's' : '') + ' unanswered' : 'All questions answered!') +
+    '</div>' +
+    '<button class="btn btn-accent" onclick="submitTest()" style="font-size:1.1rem;padding:14px 40px;">Submit Test</button>' +
+  '</div>';
+
+  return html;
+}
+
+function startTest() {
+  var name = document.getElementById('studentName').value.trim();
+  var cls = document.getElementById('studentClass').value.trim();
+  if (!name || !cls) return;
+  document.getElementById('headerStudent').textContent = name + ' \\u2014 ' + cls;
+  showScreen('testScreen');
+  startTimer();
+  showSection(0);
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function showSection(idx) {
+  currentSection = idx;
+  var sec = sections[idx];
+  document.getElementById('passagePanel').innerHTML = sec.passage;
+  document.getElementById('questionsPanel').innerHTML = buildQuestionsForSection(sec);
+
+  var navBtns = document.getElementById('sectionNav').children;
+  for (var i = 0; i < navBtns.length; i++) {
+    navBtns[i].classList.toggle('active', i === idx);
+    var secAnswered = sections[i].questions.filter(function(q) { return studentAnswers['q' + q.num]; }).length;
+    navBtns[i].classList.toggle('has-answers', secAnswered === sections[i].questions.length);
+  }
+
+  document.getElementById('questionsPanel').scrollTop = 0;
+  document.getElementById('passagePanel').scrollTop = 0;
+  updateProgress();
+}
+
+function selectOption(qNum, value, el) {
+  var parent = el.closest('.question');
+  parent.querySelectorAll('.option').forEach(function(o) { o.classList.remove('selected'); });
+  el.classList.add('selected');
+  el.querySelector('input').checked = true;
+  studentAnswers['q' + qNum] = value;
+  updateProgress();
+}
+
+function saveWrittenAnswer(qNum, value) {
+  if (value.trim()) {
+    studentAnswers['q' + qNum] = value.trim();
+  } else {
+    delete studentAnswers['q' + qNum];
+  }
+  updateProgress();
+}
+
+function updateProgress() {
+  var answered = Object.keys(studentAnswers).length;
+  var el = document.getElementById('headerProgress');
+  if (el) el.textContent = answered + ' of ' + TOTAL_QUESTIONS + ' answered';
+
+  var navBtns = document.getElementById('sectionNav').children;
+  sections.forEach(function(sec, i) {
+    if (navBtns[i]) {
+      var secAnswered = sec.questions.filter(function(q) { return studentAnswers['q' + q.num]; }).length;
+      navBtns[i].classList.toggle('has-answers', secAnswered === sec.questions.length);
+    }
+  });
+
+  var warning = document.getElementById('submitWarning');
+  if (warning) {
+    var unanswered = TOTAL_QUESTIONS - answered;
+    if (unanswered > 0) {
+      warning.textContent = unanswered + ' question' + (unanswered > 1 ? 's' : '') + ' unanswered';
+      warning.style.color = 'var(--incorrect)';
+    } else {
+      warning.textContent = 'All questions answered!';
+      warning.style.color = 'var(--correct)';
+    }
+  }
+}
+
+function startTimer() {
+  updateTimerDisplay();
+  timerInterval = setInterval(function() {
+    secondsLeft--;
+    if (secondsLeft <= 0) {
+      clearInterval(timerInterval);
+      secondsLeft = 0;
+      submitTest();
+    }
+    updateTimerDisplay();
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  var m = Math.floor(secondsLeft / 60);
+  var s = secondsLeft % 60;
+  var display = m + ':' + (s < 10 ? '0' : '') + s;
+  var timer = document.getElementById('timer');
+  timer.textContent = display;
+  if (secondsLeft <= 300) timer.style.color = '#e74c3c';
+  else if (secondsLeft <= 600) timer.style.color = '#f39c12';
+  else timer.style.color = 'white';
+}
+
+function submitTest() {
+  clearInterval(timerInterval);
+
+  var score = 0;
+  var results = [];
+
+  for (var i = 1; i <= TOTAL_QUESTIONS; i++) {
+    var answer = studentAnswers['q' + i] || null;
+    var correct = CORRECT_ANSWERS[i];
+
+    if (correct === 'written') {
+      results.push({ num: i, answer: answer || '(no answer)', correct: 'written', isCorrect: null, type: 'written' });
+      continue;
+    }
+
+    var isCorrect = answer && answer.toLowerCase() === correct.toLowerCase();
+    if (isCorrect) score++;
+    results.push({ num: i, answer: answer ? answer.toUpperCase() : '\\u2014', correct: correct.toUpperCase(), isCorrect: isCorrect, type: 'mc' });
+  }
+
+  var percentage = TOTAL_MC > 0 ? Math.round((score / TOTAL_MC) * 100) : 0;
+
+  var writtenNote = WRITTEN_QUESTIONS.length > 0
+    ? '<p style="margin-top:12px;color:#666;">Question' + (WRITTEN_QUESTIONS.length > 1 ? 's ' : ' ') + WRITTEN_QUESTIONS.join(', ') + (WRITTEN_QUESTIONS.length > 1 ? ' are' : ' is a') + ' written response' + (WRITTEN_QUESTIONS.length > 1 ? 's' : '') + ' and will be marked by your teacher.</p>'
+    : '';
+
+  var html = '<div class="results-header">' +
+    '<h1>Test Complete</h1>' +
+    '<p>' + escapeHtml(document.getElementById('studentName').value.trim()) + ' \\u2014 ' + escapeHtml(document.getElementById('studentClass').value.trim()) + '</p>' +
+    '<div class="score-display">' + percentage + '%' +
+      '<span class="score-fraction">(' + score + '/' + TOTAL_MC + ')</span>' +
+    '</div>' +
+    '<div class="score-bar"><div class="score-bar-fill" style="width:' + percentage + '%;background:' + (percentage >= 70 ? 'var(--correct)' : percentage >= 50 ? 'var(--accent)' : 'var(--incorrect)') + '"></div></div>' +
+    writtenNote +
+    '<div id="sheetsStatus" class="sheets-status sending">Sending results to your teacher...</div>' +
+  '</div>' +
+  '<div class="results-detail">' +
+    '<h2>Question-by-Question Breakdown</h2>' +
+    '<div class="result-row" style="font-weight:700;background:#eaf2f8;">' +
+      '<div class="r-num">#</div>' +
+      '<div class="r-answer">Your Answer</div>' +
+      '<div class="r-correct">Correct</div>' +
+      '<div class="r-icon">Result</div>' +
+    '</div>';
+
+  results.forEach(function(r) {
+    if (r.type === 'written') {
+      var dispAnswer = r.answer.length > 100 ? r.answer.substring(0, 100) + '...' : r.answer;
+      html += '<div class="result-row" style="background:#fef9e7;">' +
+        '<div class="r-num">Q' + r.num + '</div>' +
+        '<div class="r-answer" style="font-style:italic;">' + escapeHtml(dispAnswer) + '</div>' +
+        '<div class="r-correct">Teacher marks</div>' +
+        '<div class="r-icon" style="color:var(--accent);">&#9998;</div>' +
+      '</div>';
+    } else {
+      html += '<div class="result-row ' + (r.isCorrect ? 'correct' : 'incorrect') + '">' +
+        '<div class="r-num">Q' + r.num + '</div>' +
+        '<div class="r-answer">' + r.answer + '</div>' +
+        '<div class="r-correct">' + (r.isCorrect ? '' : r.correct) + '</div>' +
+        '<div class="r-icon">' + (r.isCorrect ? '&#10004;' : '&#10008;') + '</div>' +
+      '</div>';
+    }
+  });
+
+  html += '</div>';
+  document.getElementById('resultsContainer').innerHTML = html;
+  showScreen('resultsScreen');
+  sendToSheets(score, percentage, TOTAL_MC);
+}
+
+function escapeHtml(text) {
+  var div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function sendToSheets(score, percentage, total) {
+  var url = getSheetUrl();
+  var status = document.getElementById('sheetsStatus');
+
+  if (!url) {
+    status.className = 'sheets-status error';
+    status.textContent = 'Google Sheets not configured. Results saved locally only. Ask your teacher to set up the integration.';
+    saveLocally(score, percentage, total);
+    return;
+  }
+
+  var correctAnswersForSheet = {};
+  for (var i = 1; i <= TOTAL_QUESTIONS; i++) {
+    correctAnswersForSheet['q' + i] = CORRECT_ANSWERS[i] || '';
+  }
+
+  var payload = {
+    testName: TEST_NAME,
+    studentName: document.getElementById('studentName').value.trim(),
+    studentClass: document.getElementById('studentClass').value.trim(),
+    score: score,
+    percentage: percentage + '%',
+    totalQuestions: total,
+    writtenQuestions: WRITTEN_QUESTIONS,
+    answers: studentAnswers,
+    correctAnswers: correctAnswersForSheet
+  };
+
+  submitViaForm(url, payload, status, score, percentage, total);
+}
+
+function submitViaForm(url, payload, statusEl, score, percentage, total) {
+  saveLocally(score, percentage, total);
+
+  var iframe = document.getElementById('test_submit_frame');
+  if (!iframe) {
+    iframe = document.createElement('iframe');
+    iframe.id = 'test_submit_frame';
+    iframe.name = 'test_submit_frame';
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+  }
+
+  var form = document.createElement('form');
+  form.method = 'POST';
+  form.action = url;
+  form.target = 'test_submit_frame';
+  form.style.display = 'none';
+
+  var input = document.createElement('input');
+  input.type = 'hidden';
+  input.name = 'payload';
+  input.value = JSON.stringify(payload);
+  form.appendChild(input);
+
+  document.body.appendChild(form);
+  form.submit();
+
+  fetch(url, {
+    method: 'POST',
+    redirect: 'follow',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  }).catch(function() {});
+
+  setTimeout(function() {
+    statusEl.className = 'sheets-status success';
+    statusEl.textContent = 'Results sent to your teacher!';
+  }, 2000);
+
+  setTimeout(function() { if (form.parentNode) form.parentNode.removeChild(form); }, 3000);
+}
+
+function saveLocally(score, percentage, total) {
+  try {
+    var results = JSON.parse(localStorage.getItem('test_results') || '[]');
+    results.push({
+      timestamp: new Date().toISOString(),
+      studentName: document.getElementById('studentName').value.trim(),
+      studentClass: document.getElementById('studentClass').value.trim(),
+      score: score, percentage: percentage, total: total,
+      answers: Object.assign({}, studentAnswers)
+    });
+    localStorage.setItem('test_results', JSON.stringify(results));
+  } catch(e) { console.warn('Could not save locally:', e); }
+}
+
+function saveConfig() {
+  var url = document.getElementById('sheetUrl').value.trim();
+  if (url) {
+    localStorage.setItem('test_sheet_url_' + location.pathname, url);
+    document.getElementById('configStatus').innerHTML = '<span style="color:var(--correct);font-weight:600;">&#10004; Configuration saved!</span>';
+  } else {
+    localStorage.removeItem('test_sheet_url_' + location.pathname);
+    document.getElementById('configStatus').innerHTML = '<span style="color:var(--accent);">URL cleared.</span>';
+  }
+}
+
+function testConnection() {
+  var url = document.getElementById('sheetUrl').value.trim();
+  var status = document.getElementById('configStatus');
+  if (!url) { status.innerHTML = '<span style="color:var(--incorrect);">Please enter a URL first.</span>'; return; }
+  status.innerHTML = '<span style="color:var(--accent);">Testing connection...</span>';
+  var testPayload = { studentName: '*** TEST ***', studentClass: 'TEST', score: 0, percentage: '0%', totalQuestions: TOTAL_MC, answers: {}, correctAnswers: {} };
+  fetch(url, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(testPayload) })
+    .then(function() { status.innerHTML = '<span style="color:var(--correct);font-weight:600;">&#10004; Connection successful! Check your Google Sheet for a test row.</span>'; })
+    .catch(function() { status.innerHTML = '<span style="color:var(--correct);">&#10004; Test data sent. Check your Google Sheet for confirmation.</span>'; });
+}
+
+function copyScript() {
+  var code = getAppsScriptCode();
+  navigator.clipboard.writeText(code).then(function() {
+    event.target.textContent = 'Copied!';
+    setTimeout(function() { event.target.textContent = 'Copy Code'; }, 2000);
+  }).catch(function() {
+    var ta = document.createElement('textarea');
+    ta.value = code;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    event.target.textContent = 'Copied!';
+    setTimeout(function() { event.target.textContent = 'Copy Code'; }, 2000);
+  });
+}
+<\/script>
+</body>
+</html>`;
+}
+
+// ============================================================
+// UTILITIES
+// ============================================================
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function escapeAttr(text) {
+  return String(text || '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function slugify(text) {
+  return text.toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+    .substring(0, 60) || 'reading-test';
+}
+
+function showSpinner(text, sub) {
+  document.getElementById('spinnerText').textContent = text || 'Processing...';
+  document.getElementById('spinnerSub').textContent = sub || '';
+  document.getElementById('spinnerOverlay').classList.add('active');
+}
+
+function hideSpinner() {
+  document.getElementById('spinnerOverlay').classList.remove('active');
+}
+
+function showToast(message, type) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + (type || 'info');
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(() => {
+    if (toast.parentNode) toast.parentNode.removeChild(toast);
+  }, 4000);
+}
+</script>
+</body>
+</html>
