@@ -488,26 +488,60 @@
     font-size: 0.95rem;
   }
 
-  /* DELETE BTN */
-  .delete-btn {
+  /* CARD ACTION BUTTONS */
+  .card-actions {
     position: absolute;
     top: 12px;
     right: 12px;
+    display: none;
+    gap: 6px;
+  }
+  .library-card:hover .card-actions { display: flex; }
+  .card-action-btn {
     width: 28px;
     height: 28px;
     border-radius: 50%;
     border: none;
-    background: #fee2e2;
-    color: #ef4444;
     font-size: 0.85rem;
     cursor: pointer;
-    display: none;
+    display: flex;
     align-items: center;
     justify-content: center;
     transition: background 0.15s;
   }
-  .library-card:hover .delete-btn { display: flex; }
+  .copy-link-btn {
+    background: var(--blue-light);
+    color: var(--blue);
+  }
+  .copy-link-btn:hover { background: #d0e2ff; }
+  .copy-link-btn.copied {
+    background: var(--green-light);
+    color: var(--green);
+  }
+  .delete-btn {
+    background: #fee2e2;
+    color: #ef4444;
+  }
   .delete-btn:hover { background: #fecaca; }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    z-index: 2000;
+    animation: toastIn 0.3s ease, toastOut 0.3s ease 2s forwards;
+  }
+  @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+  @keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
 
   @media (max-width: 640px) {
     .hero h1 { font-size: 2rem; }
@@ -702,7 +736,10 @@ function renderLibrary() {
                      test.tag === 'new' ? 'NEW' : 'Comprehension';
 
     html += `<a href="${encodeURI(test.file)}" class="library-card">
-      <button class="delete-btn" onclick="event.preventDefault();event.stopPropagation();deleteTest(${i});" title="Remove from library">&#10005;</button>
+      <div class="card-actions">
+        <button class="card-action-btn copy-link-btn" onclick="event.preventDefault();event.stopPropagation();copyTestLink('${encodeURI(test.file)}', this);" title="Copy link to share">&#128279;</button>
+        <button class="card-action-btn delete-btn" onclick="event.preventDefault();event.stopPropagation();deleteTest(${i});" title="Remove from library">&#10005;</button>
+      </div>
       <div class="library-tag ${tagClass}">${tagLabel}</div>
       <h3>${escapeHtml(test.name)}</h3>
       <div class="meta">
@@ -772,6 +809,47 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text || '';
   return div.innerHTML;
+}
+
+function copyTestLink(file, btn) {
+  // Build the full URL based on current page location
+  const base = window.location.href.replace(/\/[^\/]*$/, '/');
+  const fullUrl = base + file;
+
+  navigator.clipboard.writeText(fullUrl).then(() => {
+    btn.classList.add('copied');
+    btn.innerHTML = '&#10004;';
+    showToast('Link copied!');
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = '&#128279;';
+    }, 2000);
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = fullUrl;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.classList.add('copied');
+    btn.innerHTML = '&#10004;';
+    showToast('Link copied!');
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = '&#128279;';
+    }, 2000);
+  });
+}
+
+function showToast(message) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => { if (toast.parentNode) toast.remove(); }, 2500);
 }
 
 // Close modal on background click
