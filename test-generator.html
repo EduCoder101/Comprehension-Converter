@@ -1458,17 +1458,37 @@ function generateTest() {
   });
 
   // Download
+  const filename = slugify(title) + '.html';
   const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = slugify(title) + '.html';
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 
-  showToast('Test file downloaded! Students can open it in any browser.', 'success');
+  // Auto-register on the landing page's test library (shared localStorage)
+  try {
+    const LIBRARY_KEY = 'comprehension_hub_tests';
+    let tests = JSON.parse(localStorage.getItem(LIBRARY_KEY) || '[]');
+    // Don't add duplicate if filename already exists
+    if (!tests.some(t => t.file === filename)) {
+      tests.push({
+        id: 'test-' + Date.now(),
+        name: title,
+        file: filename,
+        year: '',
+        questions: totalQ,
+        duration: duration,
+        tag: 'comprehension'
+      });
+      localStorage.setItem(LIBRARY_KEY, JSON.stringify(tests));
+    }
+  } catch(e) { /* localStorage not available */ }
+
+  showToast('Test file downloaded! It will also appear on your landing page.', 'success');
 }
 
 function generateAppsScriptCode(questions) {
