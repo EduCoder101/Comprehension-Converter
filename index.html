@@ -206,6 +206,9 @@
     gap: 20px;
     padding-bottom: 48px;
   }
+  .library-card-wrapper {
+    position: relative;
+  }
   .library-card {
     background: var(--card);
     border-radius: var(--radius);
@@ -495,8 +498,9 @@
     right: 12px;
     display: none;
     gap: 6px;
+    z-index: 10;
   }
-  .library-card:hover .card-actions { display: flex; }
+  .library-card-wrapper:hover .card-actions { display: flex; }
   .card-action-btn {
     width: 28px;
     height: 28px;
@@ -735,20 +739,22 @@ function renderLibrary() {
     const tagLabel = test.tag === 'naplan' ? 'NAPLAN' :
                      test.tag === 'new' ? 'NEW' : 'Comprehension';
 
-    html += `<a href="${encodeURI(test.file)}" class="library-card">
+    html += `<div class="library-card-wrapper">
       <div class="card-actions">
-        <button class="card-action-btn copy-link-btn" onclick="event.preventDefault();event.stopPropagation();copyTestLink('${encodeURI(test.file)}', this);" title="Copy link to share">&#128279;</button>
-        <button class="card-action-btn delete-btn" onclick="event.preventDefault();event.stopPropagation();deleteTest(${i});" title="Remove from library">&#10005;</button>
+        <button class="card-action-btn copy-link-btn" onclick="copyTestLink('${encodeURI(test.file)}', this);" title="Copy link to share">&#128279;</button>
+        <button class="card-action-btn delete-btn" onclick="deleteTest(${i});" title="Remove from library">&#10005;</button>
       </div>
-      <div class="library-tag ${tagClass}">${tagLabel}</div>
-      <h3>${escapeHtml(test.name)}</h3>
-      <div class="meta">
-        <span>${escapeHtml(test.year)}</span>
-        <span>${test.questions} questions</span>
-        <span>${test.duration} min</span>
-      </div>
-      <div class="start-btn">Start Test <span>&rarr;</span></div>
-    </a>`;
+      <a href="${encodeURI(test.file)}" class="library-card">
+        <div class="library-tag ${tagClass}">${tagLabel}</div>
+        <h3>${escapeHtml(test.name)}</h3>
+        <div class="meta">
+          <span>${escapeHtml(test.year)}</span>
+          <span>${test.questions} questions</span>
+          <span>${test.duration} min</span>
+        </div>
+        <div class="start-btn">Start Test <span>&rarr;</span></div>
+      </a>
+    </div>`;
   });
 
   // Add test button
@@ -812,34 +818,51 @@ function escapeHtml(text) {
 }
 
 function copyTestLink(file, btn) {
-  // Build the full URL based on current page location
-  const base = window.location.href.replace(/\/[^\/]*$/, '/');
+  // Build the full URL — handle both /index.html and trailing /
+  let base = window.location.href;
+  // If URL ends with / keep it; otherwise strip the filename part
+  if (!base.endsWith('/')) {
+    base = base.replace(/\/[^\/]*$/, '/');
+  }
   const fullUrl = base + file;
 
-  navigator.clipboard.writeText(fullUrl).then(() => {
+  function onSuccess() {
     btn.classList.add('copied');
     btn.innerHTML = '&#10004;';
-    showToast('Link copied!');
+    showToast('Link copied: ' + fullUrl);
     setTimeout(() => {
       btn.classList.remove('copied');
       btn.innerHTML = '&#128279;';
     }, 2000);
-  }).catch(() => {
-    // Fallback
+  }
+
+  // Try modern clipboard API first
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(fullUrl).then(onSuccess).catch(function() {
+      // Fallback to execCommand
+      fallbackCopy(fullUrl, btn, onSuccess);
+    });
+  } else {
+    fallbackCopy(fullUrl, btn, onSuccess);
+  }
+}
+
+function fallbackCopy(text, btn, onSuccess) {
+  try {
     const ta = document.createElement('textarea');
-    ta.value = fullUrl;
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    ta.style.top = '-9999px';
     document.body.appendChild(ta);
+    ta.focus();
     ta.select();
     document.execCommand('copy');
     document.body.removeChild(ta);
-    btn.classList.add('copied');
-    btn.innerHTML = '&#10004;';
-    showToast('Link copied!');
-    setTimeout(() => {
-      btn.classList.remove('copied');
-      btn.innerHTML = '&#128279;';
-    }, 2000);
-  });
+    onSuccess();
+  } catch(err) {
+    showToast('Could not copy – try right-click → copy on: ' + text);
+  }
 }
 
 function showToast(message) {
