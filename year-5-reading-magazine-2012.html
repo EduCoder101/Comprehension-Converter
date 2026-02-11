@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Year 5 Reading Magazine 2012</title>
+<style>
+  :root {
+    --primary: #1a5276;
+    --primary-light: #2980b9;
+    --accent: #e67e22;
+    --correct: #27ae60;
+    --incorrect: #e74c3c;
+    --bg: #f4f6f8;
+    --card: #ffffff;
+    --text: #2c3e50;
+    --border: #dce1e6;
+    --passage-bg: #fefcf5;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .start-container {
+    max-width: 560px; margin: 80px auto; background: var(--card);
+    border-radius: 12px; padding: 48px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    text-align: center;
+  }
+  .start-container h1 { color: var(--primary); font-size: 1.8rem; margin-bottom: 8px; }
+  .start-container .subtitle { color: #666; margin-bottom: 32px; font-size: 1rem; }
+  .start-container input[type="text"] {
+    width: 100%; padding: 14px 16px; font-size: 1.1rem; border: 2px solid var(--border);
+    border-radius: 8px; margin-bottom: 12px; transition: border-color 0.2s;
+  }
+  .start-container input:focus { border-color: var(--primary-light); outline: none; }
+  .start-container .class-input { margin-bottom: 24px; }
+
+  .btn {
+    display: inline-block; padding: 14px 36px; font-size: 1.1rem; font-weight: 600;
+    border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: var(--primary-light); }
+  .btn-primary:disabled { background: #bdc3c7; cursor: not-allowed; }
+  .btn-accent { background: var(--accent); color: white; }
+  .btn-accent:hover { background: #d35400; }
+
+  .test-header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: var(--primary);
+    color: white; padding: 10px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .test-header .student-info { font-size: 0.9rem; opacity: 0.9; }
+  .test-header .progress { font-weight: 600; font-size: 0.95rem; }
+  .timer { font-variant-numeric: tabular-nums; font-size: 1.1rem; font-weight: 600; }
+
+  .section-nav-bar {
+    position: fixed; top: 48px; left: 0; right: 0; z-index: 99;
+    background: var(--card); border-bottom: 1px solid var(--border);
+    padding: 8px 16px; display: flex; flex-wrap: wrap; gap: 6px;
+    justify-content: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .section-nav-bar button {
+    padding: 6px 14px; border: 2px solid var(--border); background: var(--card);
+    border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.15s;
+  }
+  .section-nav-bar button:hover { border-color: var(--primary-light); }
+  .section-nav-bar button.active { border-color: var(--primary); background: var(--primary); color: white; }
+  .section-nav-bar button.has-answers { border-color: var(--correct); }
+
+  .test-body {
+    margin-top: 100px;
+    display: flex;
+    height: calc(100vh - 100px);
+  }
+
+  .passage-panel {
+    width: 45%;
+    min-width: 350px;
+    background: var(--passage-bg);
+    border-right: 2px solid var(--border);
+    overflow-y: auto;
+    padding: 28px;
+    position: sticky;
+    top: 100px;
+    height: calc(100vh - 100px);
+  }
+  .passage-panel h3 { color: var(--primary); margin-bottom: 14px; font-size: 1.2rem; }
+  .passage-panel p { margin-bottom: 12px; line-height: 1.85; font-size: 0.98rem; }
+  .passage-panel .footnote { font-size: 0.85rem; color: #888; font-style: italic; margin-top: 12px; }
+  .passage-panel .intro { font-style: italic; color: #555; margin-bottom: 16px; }
+  .passage-panel ul { margin-left: 24px; margin-bottom: 12px; }
+  .passage-panel ul li { margin-bottom: 8px; line-height: 1.7; }
+  .passage-panel .sign-footer { margin-top: 16px; font-size: 0.85rem; color: #888; font-style: italic; }
+  .passage-panel .book-blurb { background: #f0ece3; padding: 16px; border-radius: 8px; margin: 16px 0; font-style: italic; }
+  .passage-panel .reviewer { font-weight: 600; margin-top: 12px; text-align: right; }
+
+  .questions-panel {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px;
+    height: calc(100vh - 100px);
+  }
+
+  .section-title {
+    font-size: 1.2rem; color: var(--primary); margin-bottom: 16px;
+    padding-bottom: 10px; border-bottom: 2px solid var(--border);
+  }
+
+  .question {
+    padding: 18px 0; border-bottom: 1px solid var(--border);
+  }
+  .question:last-child { border-bottom: none; }
+  .question-text { font-weight: 600; margin-bottom: 12px; font-size: 1rem; }
+  .question-text .q-num { color: var(--primary-light); margin-right: 4px; }
+  .question-text .quote { font-style: italic; font-weight: 400; color: #555; }
+
+  .options { display: flex; flex-direction: column; gap: 8px; }
+  .option {
+    display: flex; align-items: flex-start; padding: 10px 14px; border: 2px solid var(--border);
+    border-radius: 8px; cursor: pointer; transition: all 0.15s;
+  }
+  .option:hover { border-color: var(--primary-light); background: #f0f4f8; }
+  .option.selected { border-color: var(--primary); background: #eaf2f8; }
+  .option input[type="radio"] { margin-right: 10px; margin-top: 3px; accent-color: var(--primary); }
+  .option label { cursor: pointer; flex: 1; }
+
+  .text-answer { margin-top: 8px; }
+  .text-answer textarea {
+    width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px;
+    font-size: 1rem; font-family: inherit; resize: vertical; min-height: 80px;
+  }
+  .text-answer textarea:focus { border-color: var(--primary-light); outline: none; }
+
+  .nav-buttons {
+    display: flex; justify-content: space-between; margin-top: 24px; gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .submit-section {
+    text-align: center; padding: 24px 0; margin-top: 12px;
+    border-top: 2px solid var(--border);
+  }
+  .submit-section .warning { color: var(--incorrect); margin-bottom: 12px; font-weight: 500; }
+
+  .results-container { max-width: 800px; margin: 0 auto; padding: 20px; }
+  .results-header {
+    background: var(--card); border-radius: 12px; padding: 36px;
+    text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 24px;
+  }
+  .results-header h1 { color: var(--primary); margin-bottom: 8px; }
+  .score-display { font-size: 3.5rem; font-weight: 700; margin: 16px 0; }
+  .score-display .score-fraction { font-size: 1.5rem; color: #666; font-weight: 400; }
+  .score-bar { height: 12px; background: #ecf0f1; border-radius: 6px; overflow: hidden; margin: 16px auto; max-width: 400px; }
+  .score-bar-fill { height: 100%; border-radius: 6px; transition: width 1s ease; }
+
+  .results-detail {
+    background: var(--card); border-radius: 12px; padding: 28px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06); margin-bottom: 24px;
+  }
+  .results-detail h2 { color: var(--primary); margin-bottom: 16px; font-size: 1.2rem; }
+  .result-row {
+    display: flex; align-items: center; padding: 10px 12px;
+    border-radius: 6px; margin-bottom: 4px; font-size: 0.95rem;
+  }
+  .result-row:nth-child(odd) { background: #f8f9fa; }
+  .result-row .r-num { width: 50px; font-weight: 600; color: var(--primary); }
+  .result-row .r-answer { flex: 1; }
+  .result-row .r-correct { width: 120px; text-align: center; }
+  .result-row .r-icon { width: 30px; text-align: center; font-size: 1.2rem; }
+  .result-row.correct .r-icon { color: var(--correct); }
+  .result-row.incorrect .r-icon { color: var(--incorrect); }
+  .result-row.incorrect .r-correct { color: var(--correct); font-weight: 600; }
+
+  .sheets-status {
+    text-align: center; padding: 16px; margin-top: 16px;
+    border-radius: 8px; font-weight: 500;
+  }
+  .sheets-status.success { background: #d5f5e3; color: var(--correct); }
+  .sheets-status.error { background: #fadbd8; color: var(--incorrect); }
+  .sheets-status.sending { background: #fef9e7; color: var(--accent); }
+
+  .teacher-link {
+    position: fixed; bottom: 20px; right: 20px; background: var(--primary);
+    color: white; padding: 10px 16px; border-radius: 8px; font-size: 0.85rem;
+    cursor: pointer; z-index: 200; text-decoration: none; border: none;
+  }
+  .teacher-link:hover { background: var(--primary-light); }
+
+  .dashboard-container { max-width: 900px; margin: 0 auto; padding: 20px; }
+  .config-box {
+    background: var(--card); border-radius: 12px; padding: 28px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 24px;
+  }
+  .config-box h2 { color: var(--primary); margin-bottom: 16px; }
+  .config-box p { margin-bottom: 12px; color: #555; font-size: 0.95rem; }
+  .config-box input[type="text"], .config-box input[type="url"] {
+    width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px;
+    font-size: 1rem; margin-bottom: 8px;
+  }
+  .config-box input:focus { border-color: var(--primary-light); outline: none; }
+  .config-box .help { font-size: 0.85rem; color: #888; margin-top: 4px; }
+
+  .instructions-box {
+    background: #eaf2f8; border-radius: 8px; padding: 20px; margin-top: 16px;
+  }
+  .instructions-box h3 { color: var(--primary); margin-bottom: 8px; }
+  .instructions-box ol { padding-left: 20px; }
+  .instructions-box ol li { margin-bottom: 8px; font-size: 0.95rem; color: #444; }
+  .code-block {
+    background: #2c3e50; color: #ecf0f1; padding: 16px; border-radius: 8px;
+    font-family: 'Consolas', monospace; font-size: 0.85rem; overflow-x: auto;
+    margin: 12px 0; white-space: pre; line-height: 1.5;
+  }
+
+  @media (max-width: 900px) {
+    .test-body { flex-direction: column; height: auto; }
+    .passage-panel {
+      width: 100%; min-width: unset; position: relative; top: auto;
+      height: 40vh; border-right: none; border-bottom: 2px solid var(--border);
+    }
+    .questions-panel { height: auto; overflow-y: visible; }
+    .start-container { margin: 20px; padding: 28px; }
+    .score-display { font-size: 2.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<div id="startScreen" class="screen active">
+  <div class="start-container">
+    <h1>Year 5 Reading Magazine 2012</h1>
+    <p class="subtitle">50 Minutes &mdash; 38 Questions</p>
+    <input type="text" id="studentName" placeholder="Enter your full name" autofocus>
+    <input type="text" id="studentClass" class="class-input" placeholder="Enter your class (e.g. 5B)">
+    <br>
+    <button class="btn btn-primary" id="startBtn" onclick="startTest()" disabled>Begin Test</button>
+  </div>
+</div>
+
+<div id="testScreen" class="screen">
+  <div class="test-header">
+    <div>
+      <div class="student-info" id="headerStudent"></div>
+      <div class="progress" id="headerProgress">0 of 38 answered</div>
+    </div>
+    <div class="timer" id="timer">50:00</div>
+  </div>
+  <div class="section-nav-bar" id="sectionNav"></div>
+  <div class="test-body">
+    <div class="passage-panel" id="passagePanel"></div>
+    <div class="questions-panel" id="questionsPanel"></div>
+  </div>
+</div>
+
+<div id="resultsScreen" class="screen">
+  <div class="results-container" id="resultsContainer"></div>
+</div>
+
+<div id="dashboardScreen" class="screen">
+  <div class="dashboard-container">
+    <h1 style="color:var(--primary);margin-bottom:24px;">Teacher Setup</h1>
+    <div class="config-box">
+      <h2>Google Sheets Integration</h2>
+      <p>Student results are automatically sent to a Google Sheet. Follow the steps below to set it up (one-time only).</p>
+      <div class="instructions-box">
+        <h3>Setup Instructions</h3>
+        <ol>
+          <li>Open <strong>Google Sheets</strong> and create a new spreadsheet.</li>
+          <li>Name it something like <strong>"Year 5 Reading Magazine 2012 Results"</strong>.</li>
+          <li>Go to <strong>Extensions &gt; Apps Script</strong>.</li>
+          <li>Delete any code in the editor and paste the code shown below.</li>
+          <li>Click <strong>Deploy &gt; New deployment</strong>.</li>
+          <li>Set type to <strong>"Web app"</strong>.</li>
+          <li>Set <strong>"Execute as"</strong> to <strong>Me</strong>.</li>
+          <li>Set <strong>"Who has access"</strong> to <strong>Anyone</strong>.</li>
+          <li>Click <strong>Deploy</strong>, then <strong>Authorize access</strong> when prompted.</li>
+          <li>Copy the <strong>Web app URL</strong> and paste it below.</li>
+        </ol>
+      </div>
+      <h3 style="margin-top:20px;color:var(--primary);">Apps Script Code</h3>
+      <p style="font-size:0.9rem;color:#666;">Copy and paste this entire block into the Apps Script editor:</p>
+      <div class="code-block" id="appsScriptCode"></div>
+      <button class="btn btn-primary" style="margin-top:8px;padding:8px 16px;font-size:0.9rem;" onclick="copyScript()">Copy Code</button>
+      <h3 style="margin-top:24px;color:var(--primary);">Web App URL</h3>
+      <input type="url" id="sheetUrl" placeholder="Paste your Google Apps Script Web App URL here" value="">
+      <p class="help">This URL starts with https://script.google.com/macros/...</p>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="btn btn-primary" onclick="saveConfig()">Save Configuration</button>
+        <button class="btn btn-accent" onclick="testConnection()">Test Connection</button>
+      </div>
+      <div id="configStatus" style="margin-top:12px;"></div>
+    </div>
+    <div class="config-box">
+      <h2>Share With Students</h2>
+      <p>Once configured, share this HTML file with students via your LMS, shared drive, or web hosting.</p>
+      <button class="btn btn-primary" onclick="showScreen('startScreen')" style="margin-top:8px;">Back to Test</button>
+    </div>
+  </div>
+</div>
+
+<button class="teacher-link" onclick="showScreen('dashboardScreen')">Teacher Setup</button>
+
+<script>
+const CORRECT_ANSWERS = {
+  1:"d",
+  2:"a",
+  3:"c",
+  4:"c",
+  5:"b",
+  6:"c",
+  7:"d",
+  8:"c",
+  9:"d",
+  10:"a",
+  11:"b",
+  12:"a",
+  13:"c",
+  14:"b",
+  15:"d",
+  16:"c",
+  17:"c",
+  18:"a",
+  19:"written",
+  20:"b",
+  21:"d",
+  22:"b",
+  23:"d",
+  24:"a",
+  25:"c",
+  26:"b",
+  27:"c",
+  28:"b",
+  29:"d",
+  30:"c",
+  31:"a",
+  32:"a",
+  33:"d",
+  34:"a",
+  35:"a",
+  36:"a",
+  37:"c",
+  38:"b",
+};
+
+
+const WRITTEN_QUESTIONS = [19];
+
+
+const sections = [
+  {
+    title: "Giddy galahs (Questions 1–6)",
+    shortTitle: "Giddy galahs",
+    passage: "<p>Most Australians will have seen a galah. It is a colourful bird that is found all\nover Australia. The galah has a pink front, a grey back and a striking white\ncrest.</p>\n<p>Galahs are usually found in groups. They can be seen sitting in trees,\nforaging for seeds on the ground, or frolicking on powerlines. When a flock\nof galahs flies towards you, it looks like a bright pink cloud.</p>\n<p>When galahs get together in the evenings, they can be very noisy. So, if you\nhaven't seen a galah, you will have probably heard one!</p>\n<p>Galahs are intelligent birds that seem to like having fun. Here are some of\ntheir antics.</p>",
+    questions: [
+      { num:1, text:"The text suggests that galahs are", options:{a:"uncommon.",b:"quiet.",c:"gentle.",d:"playful."} },
+      { num:2, text:"<i>So, if you haven't seen a galah, you will have probably heard one!</i>\nWhat does this suggest about galahs?", options:{a:"Galahs can be very loud.",b:"Galahs can see in the dark.",c:"It is unusual to see a galah.",d:"Galahs sound like other birds."} },
+      { num:3, text:"When galahs are <i>foraging</i>, they are", options:{a:"doing tricks.",b:"making a noise.",c:"looking for food.",d:"cleaning their feathers."} },
+      { num:4, text:"According to the text, where do galahs play?", options:{a:"on a special perch",b:"on tree branches",c:"on powerlines",d:"on the ground"} },
+      { num:5, text:"The way the text is written suggests that the writer", options:{a:"worries about galahs.",b:"enjoys watching galahs.",c:"thinks galahs are a pest.",d:"trains galahs to perform tricks."} },
+      { num:6, text:"Which sentence best matches the information in the text?", options:{a:"The early bird catches the worm.",b:"A forest bird never wants a cage.",c:"Birds of a feather flock together.",d:"A bird in the hand is worth two in the bush."} },
+    ]
+  },
+  {
+    title: "Postal cats (Questions 7–12)",
+    shortTitle: "Postal cats",
+    passage: "<p>Leon was a postman. Every day Leon would wake up and feed\nhis 37 cats. Leon didn't really want 37 cats, but one by one they\nhad turned up on his doorstep, and Leon had taken them in.</p>\n<p>Every day, after feeding the cats, Leon would collect the mail\nfrom the red postboxes in the village and take it home to sort.</p>\n<p>'If only I had 37 helpers instead of 37 cats, my job would be so\nmuch easier,' Leon thought. Just then, the cats started meowing\nfor their dinner. That gave Leon an idea.</p>\n<p>That night, Leon stayed up making 37 cat-sized postal\nbackpacks. Each backpack fitted neatly onto a cat's back. Then,\nhe went around to each postbox, putting signs up that read:\n<em>Postbox closed. Please use the Postal Cat Service.</em></p>\n<p>The next day, Leon put a backpack on each cat and dropped\noff the cats around the village. Leon knew that the cats would\nbe happy lazing around all day. He also knew that they would\nalways come home for dinner.</p>\n<p>Leon spent the day relaxing, waiting for his helpers to return.</p>\n<p>Leon was right. The cats <em>did</em> return, but they did not bring home\nmany letters. Somehow, the cats had managed to wriggle out of\ntheir backpacks. Or lose their letters. Or get the letters wet. Or,\nin one case, nibble the corners of the letters.</p>\n<p>'Cats are just too unreliable,' Leon thought.</p>\n<p>Just then, there was a scratching at Leon's door. A scruffy dog\nwas waiting to be invited inside.</p>\n<p>That gave Leon an idea.</p>",
+    questions: [
+      { num:7, text:"This story is about a man who", options:{a:"loses his cats.",b:"is helped by cats.",c:"does not like cats.",d:"wants his cats to help him."} },
+      { num:8, text:"Why does Leon make the backpacks?", options:{a:"to put his lunch in",b:"for the cats to sit in",c:"for people to put letters in",d:"to give to the children in the village"} },
+      { num:9, text:"Why does Leon think his plan will work?", options:{a:"People will chase the cats away.",b:"The cats like meeting new people.",c:"People hate using the red postboxes.",d:"The cats will return home for dinner."} },
+      { num:10, text:"What is one thing Leon finds out about his cats?", options:{a:"They cannot be trained.",b:"They like to stay together.",c:"They can walk a long way.",d:"They do not like being outside."} },
+      { num:11, text:"What idea does Leon have at the end of the story?", options:{a:"to leave his job",b:"to use the dog as his helper",c:"to collect the mail himself",d:"to make the dog scare away the cats"} },
+      { num:12, text:"Which words best describe Leon?", options:{a:"lazy but creative",b:"greedy but funny",c:"selfish but intelligent",d:"careless but kind-hearted"} },
+    ]
+  },
+  {
+    title: "Honey bees (Questions 13–19)",
+    shortTitle: "Honey bees",
+    passage: "<p>The honey bee sucks nectar\nfrom flowers using its long,\ntube-like tongue and stores the\nnectar in its nectar sac. A bee's\nnectar sac is also known as a\nhoney stomach.</p>\n<p>If the bee gets hungry, some\nnectar is released from its\nhoney stomach and passed\nto its real stomach to give the\nbee energy.</p>\n<p>Inside the hive, the bees chew the\nnectar to reduce its water content.\nThe nectar needs to thicken to\nbecome honey. The bees then put\nthe nectar into the cells of a structure\ncalled a honeycomb.</p>\n<p>The bees also fan their wings to dry\nthe chewed-up nectar, helping it turn\ninto honey.</p>\n<p>When the honey is\nthick enough, the bees\ncover the cells of the\nhoneycomb with a\nlayer of beeswax. The\nbeeswax comes from\nglands on the sides of\nthe bees' bodies.</p>\n<p>The honey is used to feed the\nlarvae that have been produced\nby the queen bee.</p>\n<p>Within a few weeks the larvae will\ndevelop into fully grown bees.</p>\n<p>Soon, young honey bees will be\nflying around looking for nectar ...</p>",
+    questions: [
+      { num:13, text:"The purpose of the text is to show", options:{a:"how honey bees fly.",b:"where honey bees live.",c:"how honey bees make food.",d:"how honey bees talk to each other."} },
+      { num:14, text:"What do the arrows show in the text?", options:{a:"which picture belongs with each box",b:"the order to read the information",c:"which piece of information is the most important",d:"the direction that honey bees move around the hive"} },
+      { num:15, text:"A honey bee uses its tongue like", options:{a:"a fine comb.",b:"a long spoon.",c:"a sharp needle.",d:"a drinking straw."} },
+      { num:16, text:"How do honey bees turn nectar into honey?", options:{a:"by adding beeswax to the nectar",b:"by storing the nectar in their nectar sacs",c:"by reducing the amount of water in the nectar",d:"by passing nectar between the honey stomach and real stomach"} },
+      { num:17, text:"Soon, young honey bees will be flying around looking for nectar ...\nThe way this sentence finishes ( ... ) suggests that", options:{a:"the honey will stay fresh for a long time.",b:"the honey is not good enough to eat.",c:"the life cycle of honey bees continues.",d:"the honey bees have a happy life."} },
+      { num:18, text:"What does the text suggest about honey bees?", options:{a:"They are hard-working.",b:"They make a lot of noise.",c:"They are dangerous to humans.",d:"They get along with other insects."} },
+      { num:19, text:"Write the numbers 1 to 5 in the boxes to show the order of events in the text. The first one ( 1) has been done for you.", type:"written" },
+    ]
+  },
+  {
+    title: "Chooky Dancers go global (Questions 20–25)",
+    shortTitle: "Chooky Dancers go global",
+    passage: "<p>Imagine this situation: you live on a tiny island off the north coast of\nAustralia, and you and most of your friends have never even been\nto Darwin. You all love dancing: any style, any time, but especially at\nthe local disco, where hundreds of local kids gather every weekend.</p>\n<p>Then one day, on a dusty basketball court, your group is doing an\nup-beat version of the Sirtaki dance from the 1964 movie <em>Zorba the\nGreek</em>. Someone films it, and the film is uploaded to the Internet.\nIt's so funny that suddenly you are a sensation, with thousands of\nhits in the first few days. Before long, you are receiving invitations\nto perform all over Australia.</p>\n<p>This did happen in 2007 to the Chooky Dancers, an Indigenous\ndance group who live on Elcho Island, off the coast of Arnhem Land.</p>\n<p>Since then, the energetic and very amusing Chookies have\nperformed at numerous comedy festivals and cultural events all\naround Australia. They have also appeared in a full-length feature\nfilm. These young Yolngu men absorb and then reinvent dance\nmoves from everywhere: from traditional Indigenous dance styles\nand ideas, to techno and hip hop, kung fu and Bollywood.</p>\n<p>And now the Chookies have gone global. In early 2011, they travelled\nout of Australia for the first time. They went to Beijing, the capital of\nChina, where they performed their particular brand of zaniness to a\nChinese TV audience of probably close to one billion.</p>\n<p>The Chookies' act was part of one of China's biggest annual shows\n the Spring Festival Gala. Over the years the festival has hosted a\nhuge variety of acts from all around the world and of every imaginable\nstyle and content. Even so, the audience had seen nothing like the\nChooky Dancers, who began, as usual, with a traditional Yolngu\ndance, before breaking out into their signature <em>Zorba</em>. The Chinese\nwere totally won over.</p>\n<p>It's a great international, multicultural, outback youth success story\n an Indigenous Australian dance troupe performs a techno version\nof a Greek dance on Chinese TV!</p>",
+    questions: [
+      { num:20, text:"According to the text, the dance that made the Chooky Dancers famous was", options:{a:"invented by them.",b:"adapted from a film.",c:"learned from the Internet.",d:"taught to them in Greece."} },
+      { num:21, text:"... <i>on a dusty basketball court</i> ... (paragraph 2)\nWhat is the most likely reason that this description was included in the text?", options:{a:"to provide a contrast to the success of the dancers at that point",b:"to show that the court was run down and not used very often",c:"to indicate they danced because they were not very good at basketball",d:"to emphasise that it is an unlikely place to become famous"} },
+      { num:22, text:"According to the text, what was the response of the Beijing audience?", options:{a:"cautious approval",b:"thorough enjoyment",c:"complete confusion",d:"growing disappointment"} },
+      { num:23, text:"According to the text, what made the Chooky Dancers successful?", options:{a:"their formal dance training",b:"their experience of concert tours",c:"their combination of dancing and basketball",d:"their talent being exposed through technology"} },
+      { num:24, text:"What is the effect of using <i>you</i> in the first two paragraphs?", options:{a:"to bring the reader into someone else's world",b:"to make the reader feel sorry for the dancers",c:"to encourage the reader to see the topic from all sides",d:"to remind the reader of similar experiences they have had"} },
+      { num:25, text:"What contrast is made in the text?", options:{a:"successful youth with unsuccessful youth",b:"Chinese humour with Australian humour",c:"remoteness with fame",d:"TV with the Internet"} },
+    ]
+  },
+  {
+    title: "Through the break (Questions 26–31)",
+    shortTitle: "Through the break",
+    passage: "<p>Breakers rise like hulking sea eagles. They glide, then crash, tossing their prey of\nbodies and surfboards to the sand, hissing to retreat and hurl again.</p>\n<p>Shai has been coming all summer, catching three buses to stand at the shoreline,\nclose his eyes and crunch warm shell grit between his toes – like he did on his old\nisland home, where currents were lazy and the waters warm and calm. He watches\nsurfers spear through waves. Counts one two three until they emerge, then\nwatches the practised flick of their hair. He'll be out there with them ... one day.</p>\n<p>He grips the pitted second-hand board to his chest. 'Today,' he murmurs. 'Today.'</p>\n<p>Heart hammering, Shai wades in, flings his legs onto his board and strokes\ntowards the looming curve of green crystal until it's too late to turn back. The water\nwall shimmers and fragments above him. He dips his board's nose as he's seen others\ndo, spearing into his fear. Ears, eyes and nostrils are swamped. He feels the shove of\nthe wave, hears nothing but the dull rumble of the sea. Counts one ... two ... three</p>\n<p>Suddenly, body rigid, blue-knuckled, he shoots upwards, into the silk water\nbeyond the wave that is now billowing behind him to shore. He yelps with joy and\npaddles until the breakers can no longer drag him back, feeling freer and freer with\neach pull.</p>\n<p>Bobbing, drifting, he rests his head on his arms. The people on the beach dip in\nand out of view. The boy from far away, who all hot summer cringed in the shallows,\nfearing the waves, is no longer stranded on the sand.</p>\n<p>Turning his board, Shai claws his way until he is picked up by a swell and carried\nin a roaring rush towards the shore. He tumbles as his board is ripped from beneath\nhim. He rolls with the sand and froth and shells until, panting and grazed, he lies on\nthe land's edge, the edge of his new country.</p>\n<p>Shai staggers to his feet and looks out to the horizon. He says goodbye to\nanother island, out there somewhere, beyond the break. He smiles, collects his\nboard, limps up onto the dry sand and breathes deeply the air of the place he'll now\ncall home.</p>",
+    questions: [
+      { num:26, text:"Shai is best described as someone who", options:{a:"resists new experiences.",b:"is able to confront his fears.",c:"sets himself unrealistic goals.",d:"takes pleasure in being different from others."} },
+      { num:27, text:"The last paragraph suggests that Shai is", options:{a:"afraid of the future.",b:"longing for the past.",c:"ready for the future.",d:"worried about the past."} },
+      { num:28, text:"Counts <i>one ... two ... three ... until they emerge, then watches the practised flick of their hair.</i>\nWhat does this sentence suggest?", options:{a:"Shai is anxious about the surfers' safety.",b:"Shai is familiar with the surfers' behaviour.",c:"Shai is critical about the surfers' technique.",d:"Shai is bored with the surfers' repetitive routines."} },
+      { num:29, text:"The text draws attention to which of the following issues?", options:{a:"age",b:"gender",c:"poverty",d:"immigration"} },
+      { num:30, text:"What is the effect of the phrase <i>too late to turn back</i> in paragraph 4?", options:{a:"It encourages readers to evaluate Shai's actions.",b:"It shows readers that Shai has made a wrong decision.",c:"It makes readers appreciate the drama of Shai's situation.",d:"It helps readers form an opinion about what Shai should do next."} },
+      { num:31, text:"In what way has Shai changed by the end of the text?", options:{a:"He has gained a new confidence.",b:"He has realised the need for patience.",c:"He has accepted that he can learn from the past.",d:"He has discovered that failures lead to opportunities."} },
+    ]
+  },
+  {
+    title: "Space junk (Questions 32–38)",
+    shortTitle: "Space junk",
+    passage: "<p>Dear Sir - Matthew Haymin suggests that\nconcerns raised about space junk are just hype\nand that the media are trying to cause panic\n('What Rubbish?', 15 April). This is further\nevidence of how poorly understood this issue\nis. His solution, simply to send satellites to\nhigher orbits when the current levels get\novercrowded, is, quite frankly, misguided.</p>\n<p>It is well established that the space junk\nproblem is at a critical point. There are an\nestimated 500 000 objects – spent rockets,\nredundant satellites (over 200!), metal\nfragments (many of which are the results of\ncollisions), nuts and bolts, paint chips and so\non with some whizzing around the Earth at\n30 000 kilometres an hour.</p>\n<p>The suggestion that we can just shoot new\nsatellites up to higher orbits when things\nget too busy is preposterous. Does Haymin\nrealise that his solution just defers the\nproblem? How far can we keep sending\nsatellites into space, adding layer upon layer\nof space junk?</p>\n<p>It is inevitable that the debris will increase,\neven if we stop adding to it now. A collision\nbetween two satellites would produce\nthousands of chunks of debris, all of which\nwould be capable of destroying billions of\ndollars worth of valuable satellites. Services\nsuch as telephone connections, television\nsignals, GPS and weather forecasts would\nall come to a smashing halt.</p>\n<p>Haymin suggests that the collision between\ntwo satellites in 2009 was an 'unprecedented\nevent'. A more accurate description would\nbe that it was 'a taste of what's to come'.</p>\n<p>The human footprint in space has become\ntoo big to ignore, but as usual, nobody wants\nto take responsibility. No government sees it\nas their job to implement change.</p>\n<p>Enough is enough. It is high time that\ninternational treaties be put in place forcing\ncountries to take responsibility for cleaning\nup the mess they have created.</p>",
+    questions: [
+      { num:32, text:"What is the main reason for Kevin Barker's concern about the space junk issue?", options:{a:"Authorities have continued to ignore the issue.",b:"Some people believe that space junk is not real.",c:"Matthew Haymin's solution might be accepted.",d:"Governments continue to rely too much on satellites."} },
+      { num:33, text:"What is Kevin Barker's main objection to Matthew Haymin's proposal?", options:{a:"It would be too risky.",b:"It would take too long to set up.",c:"It would not be technologically possible.",d:"It would make the current problem worse."} },
+      { num:34, text:"Why does the writer use an exclamation mark ( ! ) to describe the number of redundant satellites?", options:{a:"to emphasise his point",b:"to highlight a contrast",c:"to show he does not believe this",d:"to reinforce an idea that will be referred to later in the text"} },
+      { num:35, text:"What is the purpose of the questions Kevin Barker asks in paragraph 3?", options:{a:"to highlight the flaws in Haymin's proposal",b:"to challenge Haymin to write a letter of reply",c:"to encourage readers to find the answers to these questions",d:"to draw attention to the fact that these questions are unanswerable"} },
+      { num:36, text:"Kevin Barker's tone is best described as", options:{a:"indignant.",b:"enthusiastic.",c:"restrained.",d:"insensitive."} },
+      { num:37, text:"What does the phrase <i>human footprint</i> in space refer to?", options:{a:"humans' desire to use space",b:"technological advances in space",c:"consequences of human activity in space",d:"the places humans have visited in space"} },
+      { num:38, text:"What is the main reason Kevin Barker wrote the letter?", options:{a:"to correct the media",b:"to dispute Haymin's ideas",c:"to explain why governments have not taken action",d:"to make organisations that produce satellites realise they are irresponsible"} },
+    ]
+  },
+];
+
+
+const TOTAL_QUESTIONS = 38;
+const TOTAL_MC = 37;
+const TEST_DURATION = 50;
+const TEST_NAME = "Year 5 Reading Magazine 2012";
+
+const EMBEDDED_SHEET_URL = "https://docs.google.com/spreadsheets/d/1sanpTRKW3Vl-Kp4np8D0HckPI7g0WzucIW5wASMi_qo/edit?gid=0#gid=0";
+
+let studentAnswers = {};
+let timerInterval = null;
+let secondsLeft = TEST_DURATION * 60;
+let currentSection = 0;
+
+function getSheetUrl() {
+  return localStorage.getItem('test_sheet_url_' + location.pathname) || EMBEDDED_SHEET_URL || '';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  var nameInput = document.getElementById('studentName');
+  var classInput = document.getElementById('studentClass');
+  var startBtn = document.getElementById('startBtn');
+
+  function checkReady() {
+    startBtn.disabled = !(nameInput.value.trim() && classInput.value.trim());
+  }
+  nameInput.addEventListener('input', checkReady);
+  classInput.addEventListener('input', checkReady);
+  nameInput.addEventListener('keydown', function(e) { if (e.key === 'Enter' && !startBtn.disabled) startTest(); });
+  classInput.addEventListener('keydown', function(e) { if (e.key === 'Enter' && !startBtn.disabled) startTest(); });
+
+  var savedUrl = localStorage.getItem('test_sheet_url_' + location.pathname);
+  if (savedUrl) document.getElementById('sheetUrl').value = savedUrl;
+
+  document.getElementById('appsScriptCode').textContent = getAppsScriptCode();
+  buildSectionNav();
+  showSection(0);
+});
+
+function getAppsScriptCode() {
+  return "function doPost(e) {\n  var lock = LockService.getScriptLock();\n  lock.tryLock(10000);\n\n  try {\n    var raw = '';\n    if (e.postData && e.postData.contents) raw = e.postData.contents;\n    if (e.parameter && e.parameter.payload) raw = e.parameter.payload;\n\n    var data = JSON.parse(raw);\n\n    // Route to a sheet tab based on testName (creates tab if it doesn't exist)\n    var ss = SpreadsheetApp.getActiveSpreadsheet();\n    var tabName = (data.testName || 'General').substring(0, 100);\n    var sheet = ss.getSheetByName(tabName);\n    if (!sheet) {\n      sheet = ss.insertSheet(tabName);\n    }\n\n    var totalQ = data.totalQuestions || 38;\n    var writtenQs = data.writtenQuestions || [];\n\n    // Create headers if tab is empty\n    if (sheet.getLastRow() === 0) {\n      var headers = ['Timestamp', 'Student Name', 'Class', 'Score', 'Percentage', 'Total Questions'];\n      for (var i = 1; i <= totalQ; i++) {\n        headers.push('Q' + i);\n      }\n      for (var w = 0; w < writtenQs.length; w++) {\n        headers.push('Q' + writtenQs[w] + ' Written Response');\n      }\n      sheet.appendRow(headers);\n      sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');\n      sheet.setFrozenRows(1);\n    }\n\n    var answers = data.answers || {};\n    var correctAnswers = data.correctAnswers || {};\n\n    var row = [\n      new Date().toLocaleString('en-AU'),\n      data.studentName || '',\n      data.studentClass || '',\n      data.score || 0,\n      data.percentage || '0%',\n      totalQ\n    ];\n\n    for (var i = 1; i <= totalQ; i++) {\n      var ans = answers['q' + i] || '';\n      var correct = correctAnswers['q' + i] || '';\n      if (writtenQs.indexOf(i) > -1) {\n        row.push(ans ? 'See written' : '');\n      } else {\n        row.push(ans === correct ? '\\u2713 ' + ans.toUpperCase() : '\\u2717 ' + (ans ? ans.toUpperCase() : '-') + ' (' + correct.toUpperCase() + ')');\n      }\n    }\n\n    for (var w = 0; w < writtenQs.length; w++) {\n      row.push(answers['q' + writtenQs[w]] || '');\n    }\n\n    sheet.appendRow(row);\n  } finally {\n    lock.releaseLock();\n  }\n\n  return ContentService\n    .createTextOutput(JSON.stringify({status: 'ok'}))\n    .setMimeType(ContentService.MimeType.JSON);\n}\n\nfunction doGet(e) {\n  // Return all sheet tab names and their data for the analyser\n  var ss = SpreadsheetApp.getActiveSpreadsheet();\n  var sheets = ss.getSheets();\n  var result = { tests: [] };\n\n  for (var s = 0; s < sheets.length; s++) {\n    var sheet = sheets[s];\n    var data = sheet.getDataRange().getValues();\n    if (data.length < 2) continue;\n\n    result.tests.push({\n      name: sheet.getName(),\n      headers: data[0],\n      rows: data.slice(1)\n    });\n  }\n\n  return ContentService\n    .createTextOutput(JSON.stringify(result))\n    .setMimeType(ContentService.MimeType.JSON);\n}";
+}
+
+function buildSectionNav() {
+  var nav = document.getElementById('sectionNav');
+  nav.innerHTML = '';
+  sections.forEach(function(sec, si) {
+    var btn = document.createElement('button');
+    btn.textContent = sec.shortTitle;
+    btn.onclick = function() { showSection(si); };
+    if (si === 0) btn.classList.add('active');
+    nav.appendChild(btn);
+  });
+}
+
+function buildQuestionsForSection(sec) {
+  var html = '<h2 class="section-title">' + sec.title + '</h2>';
+
+  sec.questions.forEach(function(q) {
+    if (q.type === 'written') {
+      var savedVal = studentAnswers['q' + q.num] || '';
+      html += '<div class="question" id="question-' + q.num + '">' +
+        '<div class="question-text"><span class="q-num">Q' + q.num + '.</span> ' + q.text + '</div>' +
+        '<div class="text-answer">' +
+          '<textarea id="answer-' + q.num + '" placeholder="Write your answer here..." oninput="saveWrittenAnswer(' + q.num + ', this.value)">' + escapeHtml(savedVal) + '</textarea>' +
+        '</div></div>';
+    } else {
+      var optionsHtml = '';
+      var keys = ['a', 'b', 'c', 'd'];
+      keys.forEach(function(key) {
+        if (!q.options[key] && q.options[key] !== '') return;
+        var selected = studentAnswers['q' + q.num] === key ? ' selected' : '';
+        var checked = studentAnswers['q' + q.num] === key ? ' checked' : '';
+        optionsHtml += '<div class="option' + selected + '" onclick="selectOption(' + q.num + ', \'' + key + '\', this)">' +
+          '<input type="radio" name="q' + q.num + '" id="q' + q.num + '_' + key + '" value="' + key + '"' + checked + '>' +
+          '<label for="q' + q.num + '_' + key + '"><strong>' + key.toUpperCase() + '.</strong> ' + q.options[key] + '</label>' +
+        '</div>';
+      });
+      html += '<div class="question" id="question-' + q.num + '">' +
+        '<div class="question-text"><span class="q-num">Q' + q.num + '.</span> ' + q.text + '</div>' +
+        '<div class="options">' + optionsHtml + '</div></div>';
+    }
+  });
+
+  var si = sections.indexOf(sec);
+  html += '<div class="nav-buttons">';
+  html += si > 0
+    ? '<button class="btn btn-primary" onclick="showSection(' + (si - 1) + ')">&laquo; Previous</button>'
+    : '<span></span>';
+  html += si < sections.length - 1
+    ? '<button class="btn btn-primary" onclick="showSection(' + (si + 1) + ')">Next &raquo;</button>'
+    : '<span></span>';
+  html += '</div>';
+
+  var answered = Object.keys(studentAnswers).length;
+  var unanswered = TOTAL_QUESTIONS - answered;
+  html += '<div class="submit-section">' +
+    '<div class="warning" id="submitWarning" style="color:' + (unanswered > 0 ? 'var(--incorrect)' : 'var(--correct)') + '">' +
+      (unanswered > 0 ? unanswered + ' question' + (unanswered > 1 ? 's' : '') + ' unanswered' : 'All questions answered!') +
+    '</div>' +
+    '<button class="btn btn-accent" onclick="submitTest()" style="font-size:1.1rem;padding:14px 40px;">Submit Test</button>' +
+  '</div>';
+
+  return html;
+}
+
+function startTest() {
+  var name = document.getElementById('studentName').value.trim();
+  var cls = document.getElementById('studentClass').value.trim();
+  if (!name || !cls) return;
+  document.getElementById('headerStudent').textContent = name + ' \u2014 ' + cls;
+  showScreen('testScreen');
+  startTimer();
+  showSection(0);
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function showSection(idx) {
+  currentSection = idx;
+  var sec = sections[idx];
+  document.getElementById('passagePanel').innerHTML = sec.passage;
+  document.getElementById('questionsPanel').innerHTML = buildQuestionsForSection(sec);
+
+  var navBtns = document.getElementById('sectionNav').children;
+  for (var i = 0; i < navBtns.length; i++) {
+    navBtns[i].classList.toggle('active', i === idx);
+    var secAnswered = sections[i].questions.filter(function(q) { return studentAnswers['q' + q.num]; }).length;
+    navBtns[i].classList.toggle('has-answers', secAnswered === sections[i].questions.length);
+  }
+
+  document.getElementById('questionsPanel').scrollTop = 0;
+  document.getElementById('passagePanel').scrollTop = 0;
+  updateProgress();
+}
+
+function selectOption(qNum, value, el) {
+  var parent = el.closest('.question');
+  parent.querySelectorAll('.option').forEach(function(o) { o.classList.remove('selected'); });
+  el.classList.add('selected');
+  el.querySelector('input').checked = true;
+  studentAnswers['q' + qNum] = value;
+  updateProgress();
+}
+
+function saveWrittenAnswer(qNum, value) {
+  if (value.trim()) {
+    studentAnswers['q' + qNum] = value.trim();
+  } else {
+    delete studentAnswers['q' + qNum];
+  }
+  updateProgress();
+}
+
+function updateProgress() {
+  var answered = Object.keys(studentAnswers).length;
+  var el = document.getElementById('headerProgress');
+  if (el) el.textContent = answered + ' of ' + TOTAL_QUESTIONS + ' answered';
+
+  var navBtns = document.getElementById('sectionNav').children;
+  sections.forEach(function(sec, i) {
+    if (navBtns[i]) {
+      var secAnswered = sec.questions.filter(function(q) { return studentAnswers['q' + q.num]; }).length;
+      navBtns[i].classList.toggle('has-answers', secAnswered === sec.questions.length);
+    }
+  });
+
+  var warning = document.getElementById('submitWarning');
+  if (warning) {
+    var unanswered = TOTAL_QUESTIONS - answered;
+    if (unanswered > 0) {
+      warning.textContent = unanswered + ' question' + (unanswered > 1 ? 's' : '') + ' unanswered';
+      warning.style.color = 'var(--incorrect)';
+    } else {
+      warning.textContent = 'All questions answered!';
+      warning.style.color = 'var(--correct)';
+    }
+  }
+}
+
+function startTimer() {
+  updateTimerDisplay();
+  timerInterval = setInterval(function() {
+    secondsLeft--;
+    if (secondsLeft <= 0) {
+      clearInterval(timerInterval);
+      secondsLeft = 0;
+      submitTest();
+    }
+    updateTimerDisplay();
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  var m = Math.floor(secondsLeft / 60);
+  var s = secondsLeft % 60;
+  var display = m + ':' + (s < 10 ? '0' : '') + s;
+  var timer = document.getElementById('timer');
+  timer.textContent = display;
+  if (secondsLeft <= 300) timer.style.color = '#e74c3c';
+  else if (secondsLeft <= 600) timer.style.color = '#f39c12';
+  else timer.style.color = 'white';
+}
+
+function submitTest() {
+  clearInterval(timerInterval);
+
+  var score = 0;
+  var results = [];
+
+  for (var i = 1; i <= TOTAL_QUESTIONS; i++) {
+    var answer = studentAnswers['q' + i] || null;
+    var correct = CORRECT_ANSWERS[i];
+
+    if (correct === 'written') {
+      results.push({ num: i, answer: answer || '(no answer)', correct: 'written', isCorrect: null, type: 'written' });
+      continue;
+    }
+
+    var isCorrect = answer && answer.toLowerCase() === correct.toLowerCase();
+    if (isCorrect) score++;
+    results.push({ num: i, answer: answer ? answer.toUpperCase() : '\u2014', correct: correct.toUpperCase(), isCorrect: isCorrect, type: 'mc' });
+  }
+
+  var percentage = TOTAL_MC > 0 ? Math.round((score / TOTAL_MC) * 100) : 0;
+
+  var writtenNote = WRITTEN_QUESTIONS.length > 0
+    ? '<p style="margin-top:12px;color:#666;">Question' + (WRITTEN_QUESTIONS.length > 1 ? 's ' : ' ') + WRITTEN_QUESTIONS.join(', ') + (WRITTEN_QUESTIONS.length > 1 ? ' are' : ' is a') + ' written response' + (WRITTEN_QUESTIONS.length > 1 ? 's' : '') + ' and will be marked by your teacher.</p>'
+    : '';
+
+  var html = '<div class="results-header">' +
+    '<h1>Test Complete</h1>' +
+    '<p>' + escapeHtml(document.getElementById('studentName').value.trim()) + ' \u2014 ' + escapeHtml(document.getElementById('studentClass').value.trim()) + '</p>' +
+    '<div class="score-display">' + percentage + '%' +
+      '<span class="score-fraction">(' + score + '/' + TOTAL_MC + ')</span>' +
+    '</div>' +
+    '<div class="score-bar"><div class="score-bar-fill" style="width:' + percentage + '%;background:' + (percentage >= 70 ? 'var(--correct)' : percentage >= 50 ? 'var(--accent)' : 'var(--incorrect)') + '"></div></div>' +
+    writtenNote +
+    '<div id="sheetsStatus" class="sheets-status sending">Sending results to your teacher...</div>' +
+  '</div>' +
+  '<div class="results-detail">' +
+    '<h2>Question-by-Question Breakdown</h2>' +
+    '<div class="result-row" style="font-weight:700;background:#eaf2f8;">' +
+      '<div class="r-num">#</div>' +
+      '<div class="r-answer">Your Answer</div>' +
+      '<div class="r-correct">Correct</div>' +
+      '<div class="r-icon">Result</div>' +
+    '</div>';
+
+  results.forEach(function(r) {
+    if (r.type === 'written') {
+      var dispAnswer = r.answer.length > 100 ? r.answer.substring(0, 100) + '...' : r.answer;
+      html += '<div class="result-row" style="background:#fef9e7;">' +
+        '<div class="r-num">Q' + r.num + '</div>' +
+        '<div class="r-answer" style="font-style:italic;">' + escapeHtml(dispAnswer) + '</div>' +
+        '<div class="r-correct">Teacher marks</div>' +
+        '<div class="r-icon" style="color:var(--accent);">&#9998;</div>' +
+      '</div>';
+    } else {
+      html += '<div class="result-row ' + (r.isCorrect ? 'correct' : 'incorrect') + '">' +
+        '<div class="r-num">Q' + r.num + '</div>' +
+        '<div class="r-answer">' + r.answer + '</div>' +
+        '<div class="r-correct">' + (r.isCorrect ? '' : r.correct) + '</div>' +
+        '<div class="r-icon">' + (r.isCorrect ? '&#10004;' : '&#10008;') + '</div>' +
+      '</div>';
+    }
+  });
+
+  html += '</div>';
+  document.getElementById('resultsContainer').innerHTML = html;
+  showScreen('resultsScreen');
+  sendToSheets(score, percentage, TOTAL_MC);
+}
+
+function escapeHtml(text) {
+  var div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function sendToSheets(score, percentage, total) {
+  var url = getSheetUrl();
+  var status = document.getElementById('sheetsStatus');
+
+  if (!url) {
+    status.className = 'sheets-status error';
+    status.textContent = 'Google Sheets not configured. Results saved locally only. Ask your teacher to set up the integration.';
+    saveLocally(score, percentage, total);
+    return;
+  }
+
+  var correctAnswersForSheet = {};
+  for (var i = 1; i <= TOTAL_QUESTIONS; i++) {
+    correctAnswersForSheet['q' + i] = CORRECT_ANSWERS[i] || '';
+  }
+
+  var payload = {
+    testName: TEST_NAME,
+    studentName: document.getElementById('studentName').value.trim(),
+    studentClass: document.getElementById('studentClass').value.trim(),
+    score: score,
+    percentage: percentage + '%',
+    totalQuestions: total,
+    writtenQuestions: WRITTEN_QUESTIONS,
+    answers: studentAnswers,
+    correctAnswers: correctAnswersForSheet
+  };
+
+  submitViaForm(url, payload, status, score, percentage, total);
+}
+
+function submitViaForm(url, payload, statusEl, score, percentage, total) {
+  saveLocally(score, percentage, total);
+
+  var iframe = document.getElementById('test_submit_frame');
+  if (!iframe) {
+    iframe = document.createElement('iframe');
+    iframe.id = 'test_submit_frame';
+    iframe.name = 'test_submit_frame';
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+  }
+
+  var form = document.createElement('form');
+  form.method = 'POST';
+  form.action = url;
+  form.target = 'test_submit_frame';
+  form.style.display = 'none';
+
+  var input = document.createElement('input');
+  input.type = 'hidden';
+  input.name = 'payload';
+  input.value = JSON.stringify(payload);
+  form.appendChild(input);
+
+  document.body.appendChild(form);
+  form.submit();
+
+  fetch(url, {
+    method: 'POST',
+    redirect: 'follow',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  }).catch(function() {});
+
+  setTimeout(function() {
+    statusEl.className = 'sheets-status success';
+    statusEl.textContent = 'Results sent to your teacher!';
+  }, 2000);
+
+  setTimeout(function() { if (form.parentNode) form.parentNode.removeChild(form); }, 3000);
+}
+
+function saveLocally(score, percentage, total) {
+  try {
+    var results = JSON.parse(localStorage.getItem('test_results') || '[]');
+    results.push({
+      timestamp: new Date().toISOString(),
+      studentName: document.getElementById('studentName').value.trim(),
+      studentClass: document.getElementById('studentClass').value.trim(),
+      score: score, percentage: percentage, total: total,
+      answers: Object.assign({}, studentAnswers)
+    });
+    localStorage.setItem('test_results', JSON.stringify(results));
+  } catch(e) { console.warn('Could not save locally:', e); }
+}
+
+function saveConfig() {
+  var url = document.getElementById('sheetUrl').value.trim();
+  if (url) {
+    localStorage.setItem('test_sheet_url_' + location.pathname, url);
+    document.getElementById('configStatus').innerHTML = '<span style="color:var(--correct);font-weight:600;">&#10004; Configuration saved!</span>';
+  } else {
+    localStorage.removeItem('test_sheet_url_' + location.pathname);
+    document.getElementById('configStatus').innerHTML = '<span style="color:var(--accent);">URL cleared.</span>';
+  }
+}
+
+function testConnection() {
+  var url = document.getElementById('sheetUrl').value.trim();
+  var status = document.getElementById('configStatus');
+  if (!url) { status.innerHTML = '<span style="color:var(--incorrect);">Please enter a URL first.</span>'; return; }
+  status.innerHTML = '<span style="color:var(--accent);">Testing connection...</span>';
+  var testPayload = { studentName: '*** TEST ***', studentClass: 'TEST', score: 0, percentage: '0%', totalQuestions: TOTAL_MC, answers: {}, correctAnswers: {} };
+  fetch(url, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(testPayload) })
+    .then(function() { status.innerHTML = '<span style="color:var(--correct);font-weight:600;">&#10004; Connection successful! Check your Google Sheet for a test row.</span>'; })
+    .catch(function() { status.innerHTML = '<span style="color:var(--correct);">&#10004; Test data sent. Check your Google Sheet for confirmation.</span>'; });
+}
+
+function copyScript() {
+  var code = getAppsScriptCode();
+  navigator.clipboard.writeText(code).then(function() {
+    event.target.textContent = 'Copied!';
+    setTimeout(function() { event.target.textContent = 'Copy Code'; }, 2000);
+  }).catch(function() {
+    var ta = document.createElement('textarea');
+    ta.value = code;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    event.target.textContent = 'Copied!';
+    setTimeout(function() { event.target.textContent = 'Copy Code'; }, 2000);
+  });
+}
+</script>
+</body>
+</html>
