@@ -878,6 +878,14 @@ function addFile(file) {
     showToast('Only PDF files are supported.', 'error');
     return;
   }
+  const fileSizeMB = file.size / (1024 * 1024);
+  if (fileSizeMB > 50) {
+    showToast('File too large (' + fileSizeMB.toFixed(1) + ' MB). Max is 50 MB per PDF.', 'error');
+    return;
+  }
+  if (fileSizeMB > 10) {
+    showToast('Large file (' + fileSizeMB.toFixed(1) + ' MB) — processing may take longer.', 'info');
+  }
 
   // Auto-assign label
   let label = 'Combined Document';
@@ -966,7 +974,7 @@ async function processWithAI() {
     return;
   }
 
-  showSpinner('Processing with Gemini AI...', 'This may take 15-30 seconds depending on document size');
+  showSpinner('Processing with Gemini AI...', 'This may take 30-90 seconds for large documents');
 
   try {
     const parts = [];
@@ -1042,8 +1050,8 @@ Parse all the provided documents and return the structured JSON.`;
 
     parts.push({ text: prompt });
 
-    // Use gemini-2.0-flash (best PDF parsing), fall back to 1.5-flash if quota issues
-    const models = ['gemini-2.0-flash', 'gemini-1.5-flash'];
+    // Try models in order: 2.5-flash (best), 2.0-flash (legacy, shutting down Mar 2026), 2.5-flash-lite (lightweight fallback)
+    const models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.5-flash-lite'];
     let response;
     let lastError = '';
 
@@ -1067,9 +1075,10 @@ Parse all the provided documents and return the structured JSON.`;
       const errData = await response.json().catch(() => ({}));
       lastError = errData?.error?.message || ('HTTP ' + response.status);
 
-      // If quota/rate limit error, try next model
-      if (response.status === 429 || response.status === 503) {
-        showToast(model + ' quota exceeded, trying fallback model...', 'info');
+      // If quota/rate limit error or model not found, try next model
+      if (response.status === 429 || response.status === 503 || response.status === 404) {
+        const reason = response.status === 404 ? 'not available' : 'quota exceeded';
+        showToast(model + ' ' + reason + ', trying next model...', 'info');
         continue;
       }
       // For other errors, don't retry
