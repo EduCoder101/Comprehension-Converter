@@ -664,10 +664,10 @@
             Google Sheets Web App URL
             <span class="settings-saved" id="sheetsUrlSaved"></span>
           </label>
-          <input type="url" id="sheetsWebAppUrl" placeholder="https://script.google.com/macros/s/.../exec" oninput="saveSettings()">
-          <p class="help">
-            Paste the URL of your deployed Google Apps Script web app. This will be embedded in generated tests so student results are sent automatically.
-            The generated test includes full setup instructions for teachers who have not configured this yet.
+          <input type="url" id="sheetsWebAppUrl" placeholder="https://script.google.com/macros/s/.../exec" oninput="validateSheetsUrl(); saveSettings()">
+          <p class="help" id="sheetsUrlHelp">
+            Paste the URL of your deployed Google Apps Script web app (starts with https://script.google.com/macros/...).
+            <strong>This is NOT the spreadsheet URL</strong> — it's found in Apps Script → Deploy → Manage deployments.
           </p>
         </div>
       </div>
@@ -818,6 +818,18 @@ function loadSettings() {
   } else {
     document.getElementById('settingsBody').classList.add('open');
     document.getElementById('settingsToggle').classList.add('open');
+  }
+}
+
+function validateSheetsUrl() {
+  const url = document.getElementById('sheetsWebAppUrl').value.trim();
+  const help = document.getElementById('sheetsUrlHelp');
+  if (url && url.includes('docs.google.com/spreadsheets')) {
+    help.innerHTML = '<strong style="color:#e74c3c;">⚠ This is a spreadsheet URL, not the Apps Script Web App URL.</strong> Go to Extensions → Apps Script → Deploy → Manage deployments and copy the Web app URL (starts with https://script.google.com/macros/...).';
+  } else if (url && !url.includes('script.google.com/macros')) {
+    help.innerHTML = '<strong style="color:#e74c3c;">⚠ This doesn\'t look like an Apps Script URL.</strong> It should start with https://script.google.com/macros/...';
+  } else {
+    help.innerHTML = 'Paste the URL of your deployed Google Apps Script web app (starts with https://script.google.com/macros/...). <strong>This is NOT the spreadsheet URL</strong> — it\'s found in Apps Script → Deploy → Manage deployments.';
   }
 }
 
@@ -1492,7 +1504,7 @@ function generateTest() {
 }
 
 function generateAppsScriptCode(questions) {
-  // This now returns a UNIVERSAL Apps Script that routes to per-test tabs
+  // Universal Apps Script: one tab per test (testName), sanitised for sheet names
   return `function doPost(e) {
   var lock = LockService.getScriptLock();
   lock.tryLock(10000);
@@ -1500,13 +1512,14 @@ function generateAppsScriptCode(questions) {
   try {
     var raw = '';
     if (e.postData && e.postData.contents) raw = e.postData.contents;
-    if (e.parameter && e.parameter.payload) raw = e.parameter.payload;
+    if (!raw && e.parameter && e.parameter.payload) raw = e.parameter.payload;
+    if (!raw) return ContentService.createTextOutput(JSON.stringify({status:'error',message:'No payload'})).setMimeType(ContentService.MimeType.JSON);
 
     var data = JSON.parse(raw);
 
-    // Route to a sheet tab based on testName (creates tab if it doesn't exist)
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var tabName = (data.testName || 'General').substring(0, 100);
+    var tabName = String(data.testName || 'General').replace(/[\\\\\/\\?\\*\\[\\]]/g, ' ').replace(/\\s+/g, ' ').trim().substring(0, 100);
+    if (!tabName) tabName = 'General';
     var sheet = ss.getSheetByName(tabName);
     if (!sheet) {
       sheet = ss.insertSheet(tabName);
