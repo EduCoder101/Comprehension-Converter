@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Year 5 Reading Magazine 2012</title>
+<title>YEAR 5 READING</title>
 <style>
   :root {
     --primary: #1a5276;
@@ -42,11 +42,6 @@
     border-radius: 8px; margin-bottom: 12px; transition: border-color 0.2s;
   }
   .start-container input:focus { border-color: var(--primary-light); outline: none; }
-  .start-container select {
-    width: 100%; padding: 14px 16px; font-size: 1.1rem; border: 2px solid var(--border);
-    border-radius: 8px; margin-bottom: 12px; transition: border-color 0.2s; background: var(--card);
-  }
-  .start-container select:focus { border-color: var(--primary-light); outline: none; }
   .start-container .class-input { margin-bottom: 24px; }
 
   .btn {
@@ -244,15 +239,10 @@
 
 <div id="startScreen" class="screen active">
   <div class="start-container">
-    <h1>Year 5 Reading Magazine 2012</h1>
-    <p class="subtitle">50 Minutes &mdash; 38 Questions</p>
+    <h1>YEAR 5 READING</h1>
+    <p class="subtitle">50 Minutes &mdash; 41 Questions</p>
     <input type="text" id="studentName" placeholder="Enter your full name" autofocus>
-    <select id="studentClass" class="class-input" aria-label="Select your class">
-      <option value="">Select your class</option>
-      <option value="5A">5A</option>
-      <option value="5EG">5EG</option>
-      <option value="5S">5S</option>
-    </select>
+    <input type="text" id="studentClass" class="class-input" placeholder="Enter your class (e.g. 5B)">
     <br>
     <button class="btn btn-primary" id="startBtn" onclick="startTest()" disabled>Begin Test</button>
   </div>
@@ -262,7 +252,7 @@
   <div class="test-header">
     <div>
       <div class="student-info" id="headerStudent"></div>
-      <div class="progress" id="headerProgress">0 of 38 answered</div>
+      <div class="progress" id="headerProgress">0 of 41 answered</div>
     </div>
     <div class="timer" id="timer">50:00</div>
   </div>
@@ -287,7 +277,7 @@
         <h3>Setup Instructions</h3>
         <ol>
           <li>Open <strong>Google Sheets</strong> and create a new spreadsheet.</li>
-          <li>Name it something like <strong>"Year 5 Reading Magazine 2012 Results"</strong>.</li>
+          <li>Name it something like <strong>"YEAR 5 READING Results"</strong>.</li>
           <li>Go to <strong>Extensions &gt; Apps Script</strong>.</li>
           <li>Delete any code in the editor and paste the code shown below.</li>
           <li>Click <strong>Deploy &gt; New deployment</strong>.</li>
@@ -323,140 +313,153 @@
 
 <script>
 const CORRECT_ANSWERS = {
-  1:"d",
-  2:"a",
-  3:"c",
+  1:"a",
+  2:"b",
+  3:"a",
   4:"c",
-  5:"b",
-  6:"c",
-  7:"d",
-  8:"c",
-  9:"d",
-  10:"a",
-  11:"b",
-  12:"a",
-  13:"c",
-  14:"b",
-  15:"d",
-  16:"c",
-  17:"c",
-  18:"a",
-  19:"written",
-  20:"b",
-  21:"d",
-  22:"b",
-  23:"d",
-  24:"a",
+  5:"c",
+  6:"d",
+  7:"b",
+  8:"a",
+  9:"b",
+  10:"b",
+  11:"c",
+  12:"d",
+  13:"b",
+  14:"c",
+  15:"a",
+  16:"d",
+  17:"d",
+  18:"c",
+  19:"a",
+  20:"written",
+  21:"a",
+  22:"c",
+  23:"c",
+  24:"d",
   25:"c",
   26:"b",
-  27:"c",
-  28:"b",
-  29:"d",
+  27:"d",
+  28:"d",
+  29:"a",
   30:"c",
-  31:"a",
+  31:"d",
   32:"a",
   33:"d",
-  34:"a",
-  35:"a",
-  36:"a",
-  37:"c",
+  34:"written",
+  35:"b",
+  36:"d",
+  37:"a",
   38:"b",
+  39:"c",
+  40:"b",
+  41:"written",
 };
 
 
-const WRITTEN_QUESTIONS = [19];
+const WRITTEN_QUESTIONS = [20,34,41];
 
 
 const sections = [
   {
-    title: "Giddy galahs (Questions 1–6)",
-    shortTitle: "Giddy galahs",
-    passage: "<p>Most Australians will have seen a galah. It is a colourful bird that is found all\nover Australia. The galah has a pink front, a grey back and a striking white\ncrest.</p>\n<p>Galahs are usually found in groups. They can be seen sitting in trees,\nforaging for seeds on the ground, or frolicking on powerlines. When a flock\nof galahs flies towards you, it looks like a bright pink cloud.</p>\n<p>When galahs get together in the evenings, they can be very noisy. So, if you\nhaven't seen a galah, you will have probably heard one!</p>\n<p>Galahs are intelligent birds that seem to like having fun. Here are some of\ntheir antics.</p>",
+    title: "New Zealand fur seals (Questions 1–5)",
+    shortTitle: "New Zealand fur seals",
+    passage: "<h1>New Zealand fur seals</h1><h3>Baby fur seals</h3><p>Seals are mammals. So, like all mammals, baby fur seals (also called pups) drink milk from their mothers.</p><p>The pups learn to swim in rock pools. Later they swim out in the sea. The pups stay with their mothers for about a year. The pups are then able to leave their mothers and catch fish.</p><h3>Where do they live?</h3><p>New Zealand fur seals are found in the waters of New Zealand as well as in the waters south of Australia (see map).</p><p>Fur seals were hunted until they were almost totally gone. The good news is that there are now around 100 000 fur seals in Australian and New Zealand waters.</p><h3>Fur seal or sea lion?</h3><p>Sometimes fur seals are mistaken for sea lions. But if you look carefully, it is easy to tell them apart. Fur seals have a pointed nose and a thick coat of fur. Sea lions, on the other hand, have a more rounded nose and a thinner coat of fur.</p><p>Another big difference is where you find them on land. Fur seals like rocky places, while sea lions like to be on sandy beaches.</p><h3>Key facts</h3><ul><li><strong>Location:</strong> New Zealand and southern Australian waters</li><li><strong>Colour:</strong> grey/brown</li><li><strong>Length:</strong> 1.2–2.5 metres</li><li><strong>Weight:</strong> 30–180 kilograms</li><li><strong>Life span:</strong> 15–20 years</li></ul>",
     questions: [
-      { num:1, text:"The text suggests that galahs are", options:{a:"uncommon.",b:"quiet.",c:"gentle.",d:"playful."} },
-      { num:2, text:"<i>So, if you haven't seen a galah, you will have probably heard one!</i>\nWhat does this suggest about galahs?", options:{a:"Galahs can be very loud.",b:"Galahs can see in the dark.",c:"It is unusual to see a galah.",d:"Galahs sound like other birds."} },
-      { num:3, text:"When galahs are <i>foraging</i>, they are", options:{a:"doing tricks.",b:"making a noise.",c:"looking for food.",d:"cleaning their feathers."} },
-      { num:4, text:"According to the text, where do galahs play?", options:{a:"on a special perch",b:"on tree branches",c:"on powerlines",d:"on the ground"} },
-      { num:5, text:"The way the text is written suggests that the writer", options:{a:"worries about galahs.",b:"enjoys watching galahs.",c:"thinks galahs are a pest.",d:"trains galahs to perform tricks."} },
-      { num:6, text:"Which sentence best matches the information in the text?", options:{a:"The early bird catches the worm.",b:"A forest bird never wants a cage.",c:"Birds of a feather flock together.",d:"A bird in the hand is worth two in the bush."} },
+      { num:1, text:"How long does a baby fur seal stay with its mother?", options:{a:"about one year",b:"2-3 years",c:"15-20 years",d:"until it learns to swim"} },
+      { num:2, text:"Before a fur seal pup can leave its mother, it must learn how to", options:{a:"hop over rocks.",b:"catch fish.",c:"feed its babies.",d:"find sandy beaches."} },
+      { num:3, text:"The map shows", options:{a:"where New Zealand fur seals are found.",b:"how New Zealand fur seals catch fish.",c:"what New Zealand fur seals look like.",d:"how close Australia is to New Zealand."} },
+      { num:4, text:"The photograph helps to show", options:{a:"how fur seals walk.",b:"what fur seals like to eat.",c:"what fur seals look like.",d:"how fur seals and sea lions are different."} },
+      { num:5, text:"Read the section Where do they live?\nWhich words show the writer is happy that there are now more fur seals again?", options:{a:"are found",b:"now around",c:"good news",d:"totally gone"} },
     ]
   },
   {
-    title: "Postal cats (Questions 7–12)",
-    shortTitle: "Postal cats",
-    passage: "<p>Leon was a postman. Every day Leon would wake up and feed\nhis 37 cats. Leon didn't really want 37 cats, but one by one they\nhad turned up on his doorstep, and Leon had taken them in.</p>\n<p>Every day, after feeding the cats, Leon would collect the mail\nfrom the red postboxes in the village and take it home to sort.</p>\n<p>'If only I had 37 helpers instead of 37 cats, my job would be so\nmuch easier,' Leon thought. Just then, the cats started meowing\nfor their dinner. That gave Leon an idea.</p>\n<p>That night, Leon stayed up making 37 cat-sized postal\nbackpacks. Each backpack fitted neatly onto a cat's back. Then,\nhe went around to each postbox, putting signs up that read:\n<em>Postbox closed. Please use the Postal Cat Service.</em></p>\n<p>The next day, Leon put a backpack on each cat and dropped\noff the cats around the village. Leon knew that the cats would\nbe happy lazing around all day. He also knew that they would\nalways come home for dinner.</p>\n<p>Leon spent the day relaxing, waiting for his helpers to return.</p>\n<p>Leon was right. The cats <em>did</em> return, but they did not bring home\nmany letters. Somehow, the cats had managed to wriggle out of\ntheir backpacks. Or lose their letters. Or get the letters wet. Or,\nin one case, nibble the corners of the letters.</p>\n<p>'Cats are just too unreliable,' Leon thought.</p>\n<p>Just then, there was a scratching at Leon's door. A scruffy dog\nwas waiting to be invited inside.</p>\n<p>That gave Leon an idea.</p>",
+    title: "Two park signs (Questions 6–12)",
+    shortTitle: "Two park signs",
+    passage: "<h1>Two park signs</h1><p>These signs are from two different parks.</p><div style=\"display:flex; justify-content:space-between;\"><div style=\"width:48%; border:1px solid #ccc; padding:10px; background-color:#e0ffe0;\"><h2>Welcome to Belleview Park</h2><p><strong>PLEASE ENJOY YOUR PARK</strong></p><ul><li>Kick off your shoes and walk or run on the grass (cartwheels are optional).</li><li>Lie down and do nothing but stare at the sky.</li><li>Smell our flowers; that is what they are here for.</li><li>Hug the trees before you climb them.</li><li>Sit and enjoy the peace and quiet.</li><li>Share picnics with friends or family.</li><li>Play on the equipment if you are under the age of 12.</li><li>Bring your well-behaved dogs.</li></ul><p>Our park is a wonderful place. Help us keep it this way by putting all rubbish in the bin before you leave.</p></div><div style=\"width:48%; border:1px solid #ccc; padding:10px; background-color:#e0f0ff;\"><h2>WELCOME TO BRIDGE PARK</h2><p>Bridge Park is open daily from 6 am to 6 pm</p><h3>RULES AND REGULATIONS</h3><p>For the comfort and safety of all park users:</p><ul><li>Bicycles and skateboards are not allowed.</li><li>Dogs are not allowed.</li><li>Littering is prohibited. Use bins provided.</li><li>All children must be accompanied by an adult.</li><li>No loud music or noise is permitted.</li></ul><p>Fines up to $500 apply</p></div></div>",
     questions: [
-      { num:7, text:"This story is about a man who", options:{a:"loses his cats.",b:"is helped by cats.",c:"does not like cats.",d:"wants his cats to help him."} },
-      { num:8, text:"Why does Leon make the backpacks?", options:{a:"to put his lunch in",b:"for the cats to sit in",c:"for people to put letters in",d:"to give to the children in the village"} },
-      { num:9, text:"Why does Leon think his plan will work?", options:{a:"People will chase the cats away.",b:"The cats like meeting new people.",c:"People hate using the red postboxes.",d:"The cats will return home for dinner."} },
-      { num:10, text:"What is one thing Leon finds out about his cats?", options:{a:"They cannot be trained.",b:"They like to stay together.",c:"They can walk a long way.",d:"They do not like being outside."} },
-      { num:11, text:"What idea does Leon have at the end of the story?", options:{a:"to leave his job",b:"to use the dog as his helper",c:"to collect the mail himself",d:"to make the dog scare away the cats"} },
-      { num:12, text:"Which words best describe Leon?", options:{a:"lazy but creative",b:"greedy but funny",c:"selfish but intelligent",d:"careless but kind-hearted"} },
+      { num:6, text:"Which of these rules at Bridge Park is <em>not</em> shown in a picture at the bottom of the sign?", options:{a:"No skateboards are allowed.",b:"No bicycles are allowed.",c:"No dogs are allowed.",d:"No loud music or noise is allowed."} },
+      { num:7, text:"The people who designed the Bridge Park sign probably think that", options:{a:"parks are a good way to raise money.",b:"use of the park needs to be controlled.",c:"parks should be closed.",d:"nobody reads park signs."} },
+      { num:8, text:"What is the one thing both signs ask people to do?", options:{a:"Put rubbish in the bin.",b:"Have adults accompany young children.",c:"Leave skateboards at home.",d:"Enjoy the peace and quiet."} },
+      { num:9, text:"The words <em>stare at the sky, smell our flowers</em> and <em>hug the trees</em> suggest", options:{a:"that this is the order in which things should be done at the park.",b:"that people can use many senses to experience the park.",c:"that group activities are encouraged at the park.",d:"that there is not much to do in the park."} },
+      { num:10, text:"<em>Help us keep it this way by putting all rubbish in the bin before you leave.</em>\nThe use of <em>us</em> and <em>you</em> in this quotation helps to show", options:{a:"that the park belongs to the reader.",b:"that responsibility for the park is shared.",c:"that everyone agrees with the writer.",d:"that the park is visited by many people."} },
+      { num:11, text:"The Belleview Park sign helps park users by", options:{a:"giving instructions.",b:"showing fines.",c:"making suggestions.",d:"listing facilities."} },
+      { num:12, text:"Which of these best describes the difference between the two parks?", options:{a:"Belleview Park: messy; Bridge Park: convenient",b:"Belleview Park: noisy; Bridge Park: unused",c:"Belleview Park: peaceful; Bridge Park: exciting",d:"Belleview Park: welcoming; Bridge Park: strict"} },
     ]
   },
   {
-    title: "Honey bees (Questions 13–19)",
-    shortTitle: "Honey bees",
-    passage: "<p>The honey bee sucks nectar\nfrom flowers using its long,\ntube-like tongue and stores the\nnectar in its nectar sac. A bee's\nnectar sac is also known as a\nhoney stomach.</p>\n<p>If the bee gets hungry, some\nnectar is released from its\nhoney stomach and passed\nto its real stomach to give the\nbee energy.</p>\n<p>Inside the hive, the bees chew the\nnectar to reduce its water content.\nThe nectar needs to thicken to\nbecome honey. The bees then put\nthe nectar into the cells of a structure\ncalled a honeycomb.</p>\n<p>The bees also fan their wings to dry\nthe chewed-up nectar, helping it turn\ninto honey.</p>\n<p>When the honey is\nthick enough, the bees\ncover the cells of the\nhoneycomb with a\nlayer of beeswax. The\nbeeswax comes from\nglands on the sides of\nthe bees' bodies.</p>\n<p>The honey is used to feed the\nlarvae that have been produced\nby the queen bee.</p>\n<p>Within a few weeks the larvae will\ndevelop into fully grown bees.</p>\n<p>Soon, young honey bees will be\nflying around looking for nectar ...</p>",
+    title: "The first moccasins (Questions 13–18)",
+    shortTitle: "The first moccasins",
+    passage: "<h1>The first moccasins</h1><h3>A Native American story</h3><p>Once there was a brave chief who had very tender feet. Every hunting trip was torture for him because his feet were so soft that they would end up bruised and cut by rocks and thorns. One day, in terrible pain, he called a wise man and asked for help.</p><p>The wise man wove two strong mats out of reeds and as the chief walked, servants put one of the mats ahead of him so he always had something to walk on. At the end of the day the servants were exhausted and the chief was embarrassed by their hard work.</p><p>He asked the wise man for another solution. This time the wise man called for all the tribe’s animal hides (skins). The women of the tribe worked long into the night preparing and softening the hides. The wise man took the hides and cut them into strips and used them to make many pathways leading in different directions. The chief was overjoyed.</p><p>One day, as he was walking along one of his paths, he saw a beautiful maiden ahead of him. He wished to meet her and hurried after her. The path, however, ran out and the maiden disappeared across a rocky creek bed.</p><p>The chief was very disheartened. It was impossible to cover the whole earth with hides! Then the wise man had one last idea. He came to the chief with a small bundle containing two small shapes like leather boats. The chief put his feet into them and a huge smile grew across his face. 'Now I will have hide under my feet wherever I walk.'</p>",
     questions: [
-      { num:13, text:"The purpose of the text is to show", options:{a:"how honey bees fly.",b:"where honey bees live.",c:"how honey bees make food.",d:"how honey bees talk to each other."} },
-      { num:14, text:"What do the arrows show in the text?", options:{a:"which picture belongs with each box",b:"the order to read the information",c:"which piece of information is the most important",d:"the direction that honey bees move around the hive"} },
-      { num:15, text:"A honey bee uses its tongue like", options:{a:"a fine comb.",b:"a long spoon.",c:"a sharp needle.",d:"a drinking straw."} },
-      { num:16, text:"How do honey bees turn nectar into honey?", options:{a:"by adding beeswax to the nectar",b:"by storing the nectar in their nectar sacs",c:"by reducing the amount of water in the nectar",d:"by passing nectar between the honey stomach and real stomach"} },
-      { num:17, text:"Soon, young honey bees will be flying around looking for nectar ...\nThe way this sentence finishes ( ... ) suggests that", options:{a:"the honey will stay fresh for a long time.",b:"the honey is not good enough to eat.",c:"the life cycle of honey bees continues.",d:"the honey bees have a happy life."} },
-      { num:18, text:"What does the text suggest about honey bees?", options:{a:"They are hard-working.",b:"They make a lot of noise.",c:"They are dangerous to humans.",d:"They get along with other insects."} },
-      { num:19, text:"Write the numbers 1 to 5 in the boxes to show the order of events in the text. The first one ( 1) has been done for you.", type:"written" },
+      { num:13, text:"What is the problem in the text that needs to be solved?", options:{a:"The wise man can't think of a good idea.",b:"The brave chief keeps getting sore feet.",c:"The servants are tired from working too hard.",d:"The maiden disappears and can't be found."} },
+      { num:14, text:"What did the brave chief wear on his feet before the wise man's invention?", options:{a:"leather",b:"reeds",c:"nothing",d:"slippers"} },
+      { num:15, text:"What is wrong with the wise man's first two solutions?", options:{a:"They limit where the chief can go.",b:"They are too expensive.",c:"They make the chief look foolish.",d:"They hurt the chief's feet."} },
+      { num:16, text:"Which of the wise man's suggestions made the chief feel embarrassed?", options:{a:"walking on hide-covered paths",b:"wearing moccasins",c:"women preparing animal hides",d:"servants moving reed mats"} },
+      { num:17, text:"What type of text is this?", options:{a:"an adventure",b:"a discussion",c:"a mystery",d:"a folktale"} },
+      { num:18, text:"What main question does the text answer?", options:{a:"When were the first moccasins made?",b:"How were the first moccasins made?",c:"Why were the first moccasins made?",d:"Where were the first moccasins made?"} },
     ]
   },
   {
-    title: "Chooky Dancers go global (Questions 20–25)",
-    shortTitle: "Chooky Dancers go global",
-    passage: "<p>Imagine this situation: you live on a tiny island off the north coast of\nAustralia, and you and most of your friends have never even been\nto Darwin. You all love dancing: any style, any time, but especially at\nthe local disco, where hundreds of local kids gather every weekend.</p>\n<p>Then one day, on a dusty basketball court, your group is doing an\nup-beat version of the Sirtaki dance from the 1964 movie <em>Zorba the\nGreek</em>. Someone films it, and the film is uploaded to the Internet.\nIt's so funny that suddenly you are a sensation, with thousands of\nhits in the first few days. Before long, you are receiving invitations\nto perform all over Australia.</p>\n<p>This did happen in 2007 to the Chooky Dancers, an Indigenous\ndance group who live on Elcho Island, off the coast of Arnhem Land.</p>\n<p>Since then, the energetic and very amusing Chookies have\nperformed at numerous comedy festivals and cultural events all\naround Australia. They have also appeared in a full-length feature\nfilm. These young Yolngu men absorb and then reinvent dance\nmoves from everywhere: from traditional Indigenous dance styles\nand ideas, to techno and hip hop, kung fu and Bollywood.</p>\n<p>And now the Chookies have gone global. In early 2011, they travelled\nout of Australia for the first time. They went to Beijing, the capital of\nChina, where they performed their particular brand of zaniness to a\nChinese TV audience of probably close to one billion.</p>\n<p>The Chookies' act was part of one of China's biggest annual shows\n the Spring Festival Gala. Over the years the festival has hosted a\nhuge variety of acts from all around the world and of every imaginable\nstyle and content. Even so, the audience had seen nothing like the\nChooky Dancers, who began, as usual, with a traditional Yolngu\ndance, before breaking out into their signature <em>Zorba</em>. The Chinese\nwere totally won over.</p>\n<p>It's a great international, multicultural, outback youth success story\n an Indigenous Australian dance troupe performs a techno version\nof a Greek dance on Chinese TV!</p>",
+    title: "The mission (Questions 19–25)",
+    shortTitle: "The mission",
+    passage: "<h1>The mission</h1><p>I knew there had been a mistake. Although Bella had assured me that the house was empty, a dog bark, followed swiftly by unwelcome lights glimpsed between twitching curtains, suggested otherwise. I signalled to indicate it was time to abandon the operation.</p><p>We melted soundlessly into the shadows of the garden, gathering at the meeting point to consider our options. Ty was angry. 'You have to face it, Sam. She didn't analyse the intelligence properly,' he seethed. 'How could anyone make such a fundamental error again?'</p><p>'Let's not waste our energy blaming Bella,' I said, asserting my authority. Ty's negative feelings towards Bella had already threatened to disrupt the mission. I'd been in Bella's position myself and knew: sometimes there simply wasn't enough time to recheck intelligence. You hoped it was accurate, but sometimes hope wasn't enough. 'Let's concentrate on what to do next,' I said to the whole team while looking directly at Ty.</p><p>Organising another 'visit' was out of the question. We were here, the file had to be retrieved, and it was our task to do so. We needed to abandon our existing strategy and come up with something new.</p><p>Ty looked doubtful when I mentioned the idea of improvising. He was still a novice and floundered for a minute or two when operations varied from the expected. Strange, considering nothing had really gone to plan for days now. He'd learn.</p><p>I quickly outlined my idea. Ty's expression changed from doubt to intrigue, 'I can't believe I'm saying this, but it might just work. It's better than doing nothing.'</p><p>As the suburban street came alive with morning activity, we shed our night-time black, put on the uniforms, and marched boldly up to the front door to finish the job.</p>",
     questions: [
-      { num:20, text:"According to the text, the dance that made the Chooky Dancers famous was", options:{a:"invented by them.",b:"adapted from a film.",c:"learned from the Internet.",d:"taught to them in Greece."} },
-      { num:21, text:"... <i>on a dusty basketball court</i> ... (paragraph 2)\nWhat is the most likely reason that this description was included in the text?", options:{a:"to provide a contrast to the success of the dancers at that point",b:"to show that the court was run down and not used very often",c:"to indicate they danced because they were not very good at basketball",d:"to emphasise that it is an unlikely place to become famous"} },
-      { num:22, text:"According to the text, what was the response of the Beijing audience?", options:{a:"cautious approval",b:"thorough enjoyment",c:"complete confusion",d:"growing disappointment"} },
-      { num:23, text:"According to the text, what made the Chooky Dancers successful?", options:{a:"their formal dance training",b:"their experience of concert tours",c:"their combination of dancing and basketball",d:"their talent being exposed through technology"} },
-      { num:24, text:"What is the effect of using <i>you</i> in the first two paragraphs?", options:{a:"to bring the reader into someone else's world",b:"to make the reader feel sorry for the dancers",c:"to encourage the reader to see the topic from all sides",d:"to remind the reader of similar experiences they have had"} },
-      { num:25, text:"What contrast is made in the text?", options:{a:"successful youth with unsuccessful youth",b:"Chinese humour with Australian humour",c:"remoteness with fame",d:"TV with the Internet"} },
+      { num:19, text:"What is the <em>mistake</em> mentioned in the first sentence?", options:{a:"not knowing the house is occupied",b:"Bella deliberately misleading Ty",c:"the team going to the wrong house",d:"Sam not trusting Bella enough"} },
+      { num:20, text:"Name two things that alert the team that something is wrong.", type:"written" },
+      { num:21, text:"We <em>melted soundlessly into the shadows</em> (paragraph 2) means that the characters", options:{a:"disappeared into the darkness.",b:"ducked down below the window.",c:"were scared to proceed any further.",d:"panicked and ran away in different directions."} },
+      { num:22, text:"Ty was angry mainly because", options:{a:"he sensed Sam was protecting Bella.",b:"he didn't want to abandon the operation.",c:"he thought that Bella was unreliable.",d:"he believed Sam had put them in danger."} },
+      { num:23, text:"The team <em>marched boldly up to the front door to finish the job</em>. (last paragraph)\nThis suggests that the team", options:{a:"used force to gain entry to the house.",b:"behaved dangerously to recover the file.",c:"approached the house directly to recover the file.",d:"used speed to surprise the occupants of the house."} },
+      { num:24, text:"Ty's attitude across the text changes from", options:{a:"uninterested to resentful.",b:"assertive to suspicious.",c:"bewildered to disappointed.",d:"frustrated to engaged."} },
+      { num:25, text:"Who is in charge of the mission?", options:{a:"No-one; they are all equal.",b:"Bella",c:"Sam",d:"Ty"} },
     ]
   },
   {
-    title: "Through the break (Questions 26–31)",
-    shortTitle: "Through the break",
-    passage: "<p>Breakers rise like hulking sea eagles. They glide, then crash, tossing their prey of\nbodies and surfboards to the sand, hissing to retreat and hurl again.</p>\n<p>Shai has been coming all summer, catching three buses to stand at the shoreline,\nclose his eyes and crunch warm shell grit between his toes – like he did on his old\nisland home, where currents were lazy and the waters warm and calm. He watches\nsurfers spear through waves. Counts one two three until they emerge, then\nwatches the practised flick of their hair. He'll be out there with them ... one day.</p>\n<p>He grips the pitted second-hand board to his chest. 'Today,' he murmurs. 'Today.'</p>\n<p>Heart hammering, Shai wades in, flings his legs onto his board and strokes\ntowards the looming curve of green crystal until it's too late to turn back. The water\nwall shimmers and fragments above him. He dips his board's nose as he's seen others\ndo, spearing into his fear. Ears, eyes and nostrils are swamped. He feels the shove of\nthe wave, hears nothing but the dull rumble of the sea. Counts one ... two ... three</p>\n<p>Suddenly, body rigid, blue-knuckled, he shoots upwards, into the silk water\nbeyond the wave that is now billowing behind him to shore. He yelps with joy and\npaddles until the breakers can no longer drag him back, feeling freer and freer with\neach pull.</p>\n<p>Bobbing, drifting, he rests his head on his arms. The people on the beach dip in\nand out of view. The boy from far away, who all hot summer cringed in the shallows,\nfearing the waves, is no longer stranded on the sand.</p>\n<p>Turning his board, Shai claws his way until he is picked up by a swell and carried\nin a roaring rush towards the shore. He tumbles as his board is ripped from beneath\nhim. He rolls with the sand and froth and shells until, panting and grazed, he lies on\nthe land's edge, the edge of his new country.</p>\n<p>Shai staggers to his feet and looks out to the horizon. He says goodbye to\nanother island, out there somewhere, beyond the break. He smiles, collects his\nboard, limps up onto the dry sand and breathes deeply the air of the place he'll now\ncall home.</p>",
+    title: "The honey bee mystery (Questions 26–32)",
+    shortTitle: "The honey bee mystery",
+    passage: "<h1>The honey bee mystery</h1><p>Having an entire bee colony disappear overnight is not unknown. There are written records of cases in North America and Europe from as long ago as the 1800s. At that time, unusual weather conditions were blamed.</p><p>But in 2006, after a huge and sudden increase in the disappearance of bee colonies in North America, the worrying phenomenon was given a name: Colony Collapse Disorder (CCD). That year, and in many of the years since, North American and European apiarists (beekeepers) have recorded losses of up to half of their bee colonies. No-one knows exactly why, or why so far, Australia has been spared.</p><p>CCD is blamed for the death of a colony only when the following characteristics occur simultaneously:</p><ul><li>a complete absence of adult worker bees</li><li>few or no dead bees evident in or near the hive</li><li>the queen bee is present</li><li>there is plenty of food</li><li>there are unhatched eggs.</li></ul><p>While you may think the absence of bees is no more than a mild inconvenience for honey-lovers, the reality is that bees are a vital link in the production of our food. Bees are responsible for pollinating about a third of the fresh produce that we eat. The shortage of bees in the USA has caused significant problems for farmers, with many having to hire honey bees from all over the country and as far away as Australia to guarantee pollination of crops. Bee-hire and transportation have become huge expenses for food growers, which in turn result in higher prices for consumers.</p><p>Scientists and beekeepers are racing against time to discover both the cause of and a cure for CCD before it is too late. Theories about climate change, pesticides, parasites and bacteria have all found favour at various times and current thinking suggests that it is a combination of all these factors that has created a 'perfect storm' of environmental stresses for bees.</p><p>Colony collapse has put bees firmly in the scientific spotlight, and it is a problem we cannot afford to ignore.</p>",
     questions: [
-      { num:26, text:"Shai is best described as someone who", options:{a:"resists new experiences.",b:"is able to confront his fears.",c:"sets himself unrealistic goals.",d:"takes pleasure in being different from others."} },
-      { num:27, text:"The last paragraph suggests that Shai is", options:{a:"afraid of the future.",b:"longing for the past.",c:"ready for the future.",d:"worried about the past."} },
-      { num:28, text:"Counts <i>one ... two ... three ... until they emerge, then watches the practised flick of their hair.</i>\nWhat does this sentence suggest?", options:{a:"Shai is anxious about the surfers' safety.",b:"Shai is familiar with the surfers' behaviour.",c:"Shai is critical about the surfers' technique.",d:"Shai is bored with the surfers' repetitive routines."} },
-      { num:29, text:"The text draws attention to which of the following issues?", options:{a:"age",b:"gender",c:"poverty",d:"immigration"} },
-      { num:30, text:"What is the effect of the phrase <i>too late to turn back</i> in paragraph 4?", options:{a:"It encourages readers to evaluate Shai's actions.",b:"It shows readers that Shai has made a wrong decision.",c:"It makes readers appreciate the drama of Shai's situation.",d:"It helps readers form an opinion about what Shai should do next."} },
-      { num:31, text:"In what way has Shai changed by the end of the text?", options:{a:"He has gained a new confidence.",b:"He has realised the need for patience.",c:"He has accepted that he can learn from the past.",d:"He has discovered that failures lead to opportunities."} },
+      { num:26, text:"What led to the identification and naming of CCD?", options:{a:"written records of cases from the 1800s",b:"a sharp rise in the loss of bee colonies",c:"unusual weather conditions in 2006",d:"an increase in the demand for honey"} },
+      { num:27, text:"In which situation could CCD be blamed for the death of a colony?", options:{a:"The adult worker bees have disappeared, there are no dead bees\nsurrounding the hive and the queen bee is absent.",b:"The queen bee is present, there is no food and the eggs have all hatched.",c:"There is no food, there are unhatched eggs and all the adult worker bees\nhave disappeared.",d:"There are no dead bees around the hive, the queen bee is present and\nsome eggs are unhatched."} },
+      { num:28, text:"What is the main idea of the paragraph beginning <em>While you may think ...</em> ?\n(paragraph 4)", options:{a:"Bee shortages mean that North America will need to import produce from\nAustralian farmers in the future.",b:"Although bee colonies are disappearing, farmers are finding solutions to\nthe problem.",c:"There is money to be made in producing bees to supply to farmers.",d:"Bee shortages can be very costly for farming communities."} },
+      { num:29, text:"What is the purpose of the first sentence of paragraph 4?", options:{a:"to acknowledge an opinion about CCD and then challenge it",b:"to explain why honey-lovers will be disadvantaged",c:"to argue that CCD is not a huge problem",d:"to dismiss the concerns of some groups about CCD"} },
+      { num:30, text:"Why would farmers in the USA hire bees from Australia when it is so far away?", options:{a:"Australia supplies the cheapest bees.",b:"Australia's bees are the best at pollination.",c:"Australia has not been affected by CCD as yet.",d:"Australia produces the most honey in the world."} },
+      { num:31, text:"<em>Scientists and beekeepers are racing against time ...</em>\nWhat does this quotation imply?", options:{a:"It is simply a matter of time before a solution is found.",b:"Research is proceeding at a rapid rate.",c:"The scientists want to be the first to solve the problem.",d:"There is a degree of urgency involved in this issue."} },
+      { num:32, text:"The text ends with", options:{a:"a call to action.",b:"a counter-argument.",c:"a summary of facts.",d:"an admission of defeat."} },
     ]
   },
   {
-    title: "Space junk (Questions 32–38)",
-    shortTitle: "Space junk",
-    passage: "<p>Dear Sir - Matthew Haymin suggests that\nconcerns raised about space junk are just hype\nand that the media are trying to cause panic\n('What Rubbish?', 15 April). This is further\nevidence of how poorly understood this issue\nis. His solution, simply to send satellites to\nhigher orbits when the current levels get\novercrowded, is, quite frankly, misguided.</p>\n<p>It is well established that the space junk\nproblem is at a critical point. There are an\nestimated 500 000 objects – spent rockets,\nredundant satellites (over 200!), metal\nfragments (many of which are the results of\ncollisions), nuts and bolts, paint chips and so\non with some whizzing around the Earth at\n30 000 kilometres an hour.</p>\n<p>The suggestion that we can just shoot new\nsatellites up to higher orbits when things\nget too busy is preposterous. Does Haymin\nrealise that his solution just defers the\nproblem? How far can we keep sending\nsatellites into space, adding layer upon layer\nof space junk?</p>\n<p>It is inevitable that the debris will increase,\neven if we stop adding to it now. A collision\nbetween two satellites would produce\nthousands of chunks of debris, all of which\nwould be capable of destroying billions of\ndollars worth of valuable satellites. Services\nsuch as telephone connections, television\nsignals, GPS and weather forecasts would\nall come to a smashing halt.</p>\n<p>Haymin suggests that the collision between\ntwo satellites in 2009 was an 'unprecedented\nevent'. A more accurate description would\nbe that it was 'a taste of what's to come'.</p>\n<p>The human footprint in space has become\ntoo big to ignore, but as usual, nobody wants\nto take responsibility. No government sees it\nas their job to implement change.</p>\n<p>Enough is enough. It is high time that\ninternational treaties be put in place forcing\ncountries to take responsibility for cleaning\nup the mess they have created.</p>",
+    title: "Game review: Crawlin' Kitten 2 (Questions 33–39)",
+    shortTitle: "Game review: Crawlin' Kitten 2",
+    passage: "<h1>Game review: Crawlin' Kitten 2</h1><p><strong>Platforms:</strong> most tablets and mobile devices<br><strong>Rated:</strong> G (General)<br><strong>Price:</strong> $5.99</p><p>The little cat with the big eyes is back in <em>Crawlin' Kitten 2</em>. Just like the earlier smash-hit, the game features the shy pink kitten sneaking past obstacles and running from a host of troublemakers. Barnacle the parrot returns as the kitten's number one enemy, supported by Captain Inky, the evil squid. The winning formula from the original still applies— colourful graphics, infectious music and madcap levels.</p><p>Older primary-age gamers may initially be put off by the more childish elements. Do not be fooled by the simplicity of Level one! This game may have a cuddly exterior but underneath are some fiendish puzzles. Once you have successfully mastered the controls, the game really starts to challenge you at Level three. After that, each level involves guiding the kitten past numerous obstacles and enemies in increasing exotic locations such as Paris, ancient Egypt and even outer space. I found myself both screaming in frustration and laughing out loud in Level 15 as I tried to help the kitten drag a wedding cake over the top of Sydney Opera House.</p><p>At $5.99 there are certainly cheaper games available for the same platforms. The good news, though, is that $5.99 is <em>all</em> you will pay: there are no in-game purchases, no payments for extra levels and no advertising. I played <em>Crawlin' Kitten 2</em> over several days and in total it took me 10 hours of actual playing to finish the game. I think that's excellent value for money! So if you like your fun cute and cat-like then you'll love <em>Crawlin' Kitten 2</em>!</p>",
     questions: [
-      { num:32, text:"What is the main reason for Kevin Barker's concern about the space junk issue?", options:{a:"Authorities have continued to ignore the issue.",b:"Some people believe that space junk is not real.",c:"Matthew Haymin's solution might be accepted.",d:"Governments continue to rely too much on satellites."} },
-      { num:33, text:"What is Kevin Barker's main objection to Matthew Haymin's proposal?", options:{a:"It would be too risky.",b:"It would take too long to set up.",c:"It would not be technologically possible.",d:"It would make the current problem worse."} },
-      { num:34, text:"Why does the writer use an exclamation mark ( ! ) to describe the number of redundant satellites?", options:{a:"to emphasise his point",b:"to highlight a contrast",c:"to show he does not believe this",d:"to reinforce an idea that will be referred to later in the text"} },
-      { num:35, text:"What is the purpose of the questions Kevin Barker asks in paragraph 3?", options:{a:"to highlight the flaws in Haymin's proposal",b:"to challenge Haymin to write a letter of reply",c:"to encourage readers to find the answers to these questions",d:"to draw attention to the fact that these questions are unanswerable"} },
-      { num:36, text:"Kevin Barker's tone is best described as", options:{a:"indignant.",b:"enthusiastic.",c:"restrained.",d:"insensitive."} },
-      { num:37, text:"What does the phrase <i>human footprint</i> in space refer to?", options:{a:"humans' desire to use space",b:"technological advances in space",c:"consequences of human activity in space",d:"the places humans have visited in space"} },
-      { num:38, text:"What is the main reason Kevin Barker wrote the letter?", options:{a:"to correct the media",b:"to dispute Haymin's ideas",c:"to explain why governments have not taken action",d:"to make organisations that produce satellites realise they are irresponsible"} },
+      { num:33, text:"In paragraph 1, the reviewer refers to the <em>winning formula</em> of the original game.\nWhat is this <em>winning formula</em>?", options:{a:"the cast of characters central to the game",b:"the multi-level experience of playing the game",c:"the collection of skills needed to play the game",d:"the combination of elements that make up the game"} },
+      { num:34, text:"<em>This game may have a cuddly exterior but underneath are some fiendish puzzles.</em> (paragraph 2)\nWhat does this description suggest about the game?", type:"written" },
+      { num:35, text:"What is the purpose of the first sentence of paragraph 3?", options:{a:"to warn readers that the game is overpriced",b:"to acknowledge that the game may seem expensive",c:"to suggest that the cost will mean not many copies are sold",d:"to indicate that the reviewer has bought many games"} },
+      { num:36, text:"How does the reviewer justify the cost of the game?", options:{a:"by saying that there are bonus free levels",b:"by describing the varied locations for scenarios",c:"by listing all the things which are included",d:"by pointing out it is a one-off payment"} },
+      { num:37, text:"The reviewer states the length of time it took to finish the game", options:{a:"to reinforce the claim that the game is good value.",b:"to inform players so they make enough time to play.",c:"to compare Crawlin' Kitten 2 to the original game.",d:"to criticise the amount of time it takes to get through the levels."} },
+      { num:38, text:"The reviewer refers to the <em>colourful graphics, infectious music</em> and <em>madcap levels</em>.\n(paragraph 1)\nWhy is an adjective used before each noun?", options:{a:"to reveal what is new in <em>Crawlin' Kitten 2</em>",b:"to provide an opinion through choice of language",c:"to explain what is happening in the pictures",d:"to tell non-players what <em>Crawlin' Kitten 1</em> was like"} },
+      { num:39, text:"The opinion of the reviewer is that <em>Crawlin' Kitten 2</em>", options:{a:"is as easy to play as the original.",b:"is more challenging than the original.",c:"maintains all the best features of the original.",d:"develops the characters from the original."} },
+    ]
+  },
+  {
+    title: "Sara's early morning (Questions 40–41)",
+    shortTitle: "Sara's early morning",
+    passage: "<h1>Sara's early morning</h1><p>On Saturday morning, Sara got up early to play football.</p><p>She put on her football shirt and black shorts. Then, she pulled on some long socks. Next, she carried her football boots to the door and put them on.</p><p>'I thought you played football on Sunday, not Saturday!' said Sara's dad.</p><p>'Oh, yeah!' said Sara, and she went back to bed.</p>",
+    questions: [
+      { num:40, text:"What did Sara plan to do on Saturday morning?", options:{a:"homework",b:"play football",c:"go horseriding",d:"make breakfast"} },
+      { num:41, text:"According to the text, what was Sara's mistake?", type:"written" },
     ]
   },
 ];
 
 
-const TOTAL_QUESTIONS = 38;
-const TOTAL_MC = 37;
+const TOTAL_QUESTIONS = 41;
+const TOTAL_MC = 38;
 const TEST_DURATION = 50;
-const TEST_NAME = "Year 5 Reading Magazine 2012";
+const TEST_NAME = "YEAR 5 READING";
 
-const EMBEDDED_SHEET_URL = "https://script.google.com/macros/s/AKfycbyNKxbealw_c6pEncGxY9Q2rlXSfZeEGPKFr-PGje0L9r0JXrYgP5_EouIXLzUz67kp/exec";
+const EMBEDDED_SHEET_URL = "https://docs.google.com/spreadsheets/d/1sanpTRKW3Vl-Kp4np8D0HckPI7g0WzucIW5wASMi_qo/edit?gid=0#gid=0";
 
 let studentAnswers = {};
 let timerInterval = null;
@@ -464,7 +467,7 @@ let secondsLeft = TEST_DURATION * 60;
 let currentSection = 0;
 
 function getSheetUrl() {
-  return localStorage.getItem('test_sheet_url_' + location.pathname) || localStorage.getItem('comprehension_hub_sheet_url') || EMBEDDED_SHEET_URL || '';
+  return localStorage.getItem('test_sheet_url_' + location.pathname) || EMBEDDED_SHEET_URL || '';
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -477,11 +480,10 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   nameInput.addEventListener('input', checkReady);
   classInput.addEventListener('input', checkReady);
-  classInput.addEventListener('change', checkReady);
   nameInput.addEventListener('keydown', function(e) { if (e.key === 'Enter' && !startBtn.disabled) startTest(); });
   classInput.addEventListener('keydown', function(e) { if (e.key === 'Enter' && !startBtn.disabled) startTest(); });
 
-  var savedUrl = localStorage.getItem('test_sheet_url_' + location.pathname) || localStorage.getItem('comprehension_hub_sheet_url');
+  var savedUrl = localStorage.getItem('test_sheet_url_' + location.pathname);
   if (savedUrl) document.getElementById('sheetUrl').value = savedUrl;
 
   document.getElementById('appsScriptCode').textContent = getAppsScriptCode();
@@ -490,7 +492,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function getAppsScriptCode() {
-  return "function doPost(e) {\n  var lock = LockService.getScriptLock();\n  lock.tryLock(10000);\n\n  try {\n    var raw = '';\n    if (e.postData && e.postData.contents) raw = e.postData.contents;\n    if (e.parameter && e.parameter.payload) raw = e.parameter.payload;\n\n    var data = JSON.parse(raw);\n\n    // Route to a sheet tab based on testName (creates tab if it doesn't exist)\n    var ss = SpreadsheetApp.getActiveSpreadsheet();\n    var tabName = (data.testName || 'General').substring(0, 100);\n    var sheet = ss.getSheetByName(tabName);\n    if (!sheet) {\n      sheet = ss.insertSheet(tabName);\n    }\n\n    var totalQ = data.totalQuestions || 38;\n    var writtenQs = data.writtenQuestions || [];\n\n    // Create headers if tab is empty\n    if (sheet.getLastRow() === 0) {\n      var headers = ['Timestamp', 'Student Name', 'Class', 'Score', 'Percentage', 'Total Questions'];\n      for (var i = 1; i <= totalQ; i++) {\n        headers.push('Q' + i);\n      }\n      for (var w = 0; w < writtenQs.length; w++) {\n        headers.push('Q' + writtenQs[w] + ' Written Response');\n      }\n      sheet.appendRow(headers);\n      sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');\n      sheet.setFrozenRows(1);\n    }\n\n    var answers = data.answers || {};\n    var correctAnswers = data.correctAnswers || {};\n\n    var row = [\n      new Date().toLocaleString('en-AU'),\n      data.studentName || '',\n      data.studentClass || '',\n      data.score || 0,\n      data.percentage || '0%',\n      totalQ\n    ];\n\n    for (var i = 1; i <= totalQ; i++) {\n      var ans = answers['q' + i] || '';\n      var correct = correctAnswers['q' + i] || '';\n      if (writtenQs.indexOf(i) > -1) {\n        row.push(ans ? 'See written' : '');\n      } else {\n        row.push(ans === correct ? '\\u2713 ' + ans.toUpperCase() : '\\u2717 ' + (ans ? ans.toUpperCase() : '-') + ' (' + correct.toUpperCase() + ')');\n      }\n    }\n\n    for (var w = 0; w < writtenQs.length; w++) {\n      row.push(answers['q' + writtenQs[w]] || '');\n    }\n\n    sheet.appendRow(row);\n  } finally {\n    lock.releaseLock();\n  }\n\n  return ContentService\n    .createTextOutput(JSON.stringify({status: 'ok'}))\n    .setMimeType(ContentService.MimeType.JSON);\n}\n\nfunction doGet(e) {\n  // Return all sheet tab names and their data for the analyser\n  var ss = SpreadsheetApp.getActiveSpreadsheet();\n  var sheets = ss.getSheets();\n  var result = { tests: [] };\n\n  for (var s = 0; s < sheets.length; s++) {\n    var sheet = sheets[s];\n    var data = sheet.getDataRange().getValues();\n    if (data.length < 2) continue;\n\n    result.tests.push({\n      name: sheet.getName(),\n      headers: data[0],\n      rows: data.slice(1)\n    });\n  }\n\n  return ContentService\n    .createTextOutput(JSON.stringify(result))\n    .setMimeType(ContentService.MimeType.JSON);\n}";
+  return "function doPost(e) {\n  var lock = LockService.getScriptLock();\n  lock.tryLock(10000);\n\n  try {\n    var raw = '';\n    if (e.postData && e.postData.contents) raw = e.postData.contents;\n    if (!raw && e.parameter && e.parameter.payload) raw = e.parameter.payload;\n    if (!raw) return ContentService.createTextOutput(JSON.stringify({status:'error',message:'No payload'})).setMimeType(ContentService.MimeType.JSON);\n\n    var data = JSON.parse(raw);\n\n    var ss = SpreadsheetApp.getActiveSpreadsheet();\n    var tabName = String(data.testName || 'General').replace(/[\\\\/\\?\\*\\[\\]]/g, ' ').replace(/\\s+/g, ' ').trim().substring(0, 100);\n    if (!tabName) tabName = 'General';\n    var sheet = ss.getSheetByName(tabName);\n    if (!sheet) {\n      sheet = ss.insertSheet(tabName);\n    }\n\n    var totalQ = data.totalQuestions || 38;\n    var writtenQs = data.writtenQuestions || [];\n\n    // Create headers if tab is empty\n    if (sheet.getLastRow() === 0) {\n      var headers = ['Timestamp', 'Student Name', 'Class', 'Score', 'Percentage', 'Total Questions'];\n      for (var i = 1; i <= totalQ; i++) {\n        headers.push('Q' + i);\n      }\n      for (var w = 0; w < writtenQs.length; w++) {\n        headers.push('Q' + writtenQs[w] + ' Written Response');\n      }\n      sheet.appendRow(headers);\n      sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');\n      sheet.setFrozenRows(1);\n    }\n\n    var answers = data.answers || {};\n    var correctAnswers = data.correctAnswers || {};\n\n    var row = [\n      new Date().toLocaleString('en-AU'),\n      data.studentName || '',\n      data.studentClass || '',\n      data.score || 0,\n      data.percentage || '0%',\n      totalQ\n    ];\n\n    for (var i = 1; i <= totalQ; i++) {\n      var ans = answers['q' + i] || '';\n      var correct = correctAnswers['q' + i] || '';\n      if (writtenQs.indexOf(i) > -1) {\n        row.push(ans ? 'See written' : '');\n      } else {\n        row.push(ans === correct ? '\\u2713 ' + ans.toUpperCase() : '\\u2717 ' + (ans ? ans.toUpperCase() : '-') + ' (' + correct.toUpperCase() + ')');\n      }\n    }\n\n    for (var w = 0; w < writtenQs.length; w++) {\n      row.push(answers['q' + writtenQs[w]] || '');\n    }\n\n    sheet.appendRow(row);\n  } finally {\n    lock.releaseLock();\n  }\n\n  return ContentService\n    .createTextOutput(JSON.stringify({status: 'ok'}))\n    .setMimeType(ContentService.MimeType.JSON);\n}\n\nfunction doGet(e) {\n  // Return all sheet tab names and their data for the analyser\n  var ss = SpreadsheetApp.getActiveSpreadsheet();\n  var sheets = ss.getSheets();\n  var result = { tests: [] };\n\n  for (var s = 0; s < sheets.length; s++) {\n    var sheet = sheets[s];\n    var data = sheet.getDataRange().getValues();\n    if (data.length < 2) continue;\n\n    result.tests.push({\n      name: sheet.getName(),\n      headers: data[0],\n      rows: data.slice(1)\n    });\n  }\n\n  return ContentService\n    .createTextOutput(JSON.stringify(result))\n    .setMimeType(ContentService.MimeType.JSON);\n}";
 }
 
 function buildSectionNav() {
@@ -825,7 +827,6 @@ function saveConfig() {
   var url = document.getElementById('sheetUrl').value.trim();
   if (url) {
     localStorage.setItem('test_sheet_url_' + location.pathname, url);
-    try { localStorage.setItem('comprehension_hub_sheet_url', url); } catch(e) {}
     document.getElementById('configStatus').innerHTML = '<span style="color:var(--correct);font-weight:600;">&#10004; Configuration saved!</span>';
   } else {
     localStorage.removeItem('test_sheet_url_' + location.pathname);
