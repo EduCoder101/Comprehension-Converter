@@ -1,0 +1,21 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Hero from '../components/Hero.astro';
+import WaveDivider from '../components/WaveDivider.astro';
+import ToolsSection from '../components/ToolsSection.astro';
+import LibrarySection from '../components/LibrarySection.astro';
+import HowItWorks from '../components/HowItWorks.astro';
+import TeacherZone from '../components/TeacherZone.astro';
+import Footer from '../components/Footer.astro';
+---
+<Layout title="Reading Comprehension Hub">
+  <Hero />
+  <WaveDivider />
+  <div class="container">
+    <ToolsSection />
+    <LibrarySection />
+    <HowItWorks />
+    <TeacherZone />
+  </div>
+  <Footer />
+</Layout>

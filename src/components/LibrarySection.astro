@@ -1,0 +1,238 @@
+---
+---
+<section>
+  <div class="section-header">
+    <h2>Test Library</h2>
+    <p>All your reading comprehension tests in one place. Click to start a test.</p>
+  </div>
+  <div class="library-grid" id="libraryGrid">
+    <!-- Populated by client script -->
+  </div>
+</section>
+
+<!-- Add Test modal -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <h2>Add Test to Library</h2>
+    <label for="modalTestName">Test Name</label>
+    <input type="text" id="modalTestName" placeholder="e.g. NAPLAN 2016 Year 5 Reading" />
+    <label for="modalFileName">HTML Filename</label>
+    <input type="text" id="modalFileName" placeholder="e.g. naplan-2016-reading-yr5.html" />
+    <label for="modalYear">Year Level</label>
+    <input type="text" id="modalYear" placeholder="e.g. Year 5" />
+    <label for="modalQuestions">Number of Questions</label>
+    <input type="number" id="modalQuestions" placeholder="e.g. 38" value="38" />
+    <label for="modalDuration">Duration (minutes)</label>
+    <input type="number" id="modalDuration" placeholder="e.g. 50" value="50" />
+    <label for="modalTag">Tag</label>
+    <select id="modalTag">
+      <option value="naplan">NAPLAN</option>
+      <option value="comprehension">Comprehension</option>
+      <option value="new">New</option>
+    </select>
+    <div class="modal-actions">
+      <button type="button" class="modal-btn cancel" id="modalCancelBtn">Cancel</button>
+      <button type="button" class="modal-btn save" id="modalSaveBtn">Add Test</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const DEFAULT_TESTS = [
+    {
+      id: 'naplan-2016-yr5',
+      name: 'NAPLAN 2016 Year 5 Reading',
+      file: 'naplan-2016-reading-yr5.html',
+      year: 'Year 5',
+      questions: 38,
+      duration: 50,
+      tag: 'naplan',
+    },
+  ];
+
+  function getTests() {
+    const saved = localStorage.getItem('comprehension_hub_tests');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (_) {}
+    }
+    localStorage.setItem('comprehension_hub_tests', JSON.stringify(DEFAULT_TESTS));
+    return DEFAULT_TESTS;
+  }
+
+  function saveTests(tests) {
+    localStorage.setItem('comprehension_hub_tests', JSON.stringify(tests));
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text ?? '';
+    return div.innerHTML;
+  }
+
+  function renderLibrary() {
+    const tests = getTests();
+    const grid = document.getElementById('libraryGrid');
+    if (!grid) return;
+
+    let html = '';
+    tests.forEach((test, i) => {
+      const tagClass = test.tag === 'naplan' ? 'tag-naplan' : test.tag === 'new' ? 'tag-new' : 'tag-comprehension';
+      const tagLabel = test.tag === 'naplan' ? 'NAPLAN' : test.tag === 'new' ? 'NEW' : 'Comprehension';
+      const fileEnc = encodeURI(test.file);
+      html += `<div class="library-card-wrapper">
+        <div class="card-actions">
+          <button class="card-action-btn copy-link-btn" data-file="${fileEnc}" title="Copy link to share">&#128279;</button>
+          <button class="card-action-btn delete-btn" data-index="${i}" title="Remove from library">&#10005;</button>
+        </div>
+        <a href="${fileEnc}" class="library-card">
+          <div class="library-tag ${tagClass}">${tagLabel}</div>
+          <h3>${escapeHtml(test.name)}</h3>
+          <div class="meta">
+            <span>${escapeHtml(test.year)}</span>
+            <span>${test.questions} questions</span>
+            <span>${test.duration} min</span>
+          </div>
+          <div class="start-btn">Start Test <span>&rarr;</span></div>
+        </a>
+      </div>`;
+    });
+
+    html += `<div class="add-test-card" id="addTestCard">
+      <div class="plus">+</div>
+      <span>Add Test to Library</span>
+    </div>`;
+
+    grid.innerHTML = html;
+
+    // Re-bind events
+    grid.querySelectorAll('.copy-link-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const file = (e.currentTarget as HTMLElement).getAttribute('data-file') ?? '';
+        copyTestLink(file, e.currentTarget as HTMLButtonElement);
+      });
+    });
+    grid.querySelectorAll('.delete-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const index = parseInt((e.currentTarget as HTMLElement).getAttribute('data-index') ?? '0', 10);
+        deleteTest(index);
+      });
+    });
+    document.getElementById('addTestCard')?.addEventListener('click', openModal);
+  }
+
+  function deleteTest(index: number) {
+    if (!confirm('Remove this test from the library? (The file itself will not be deleted.)')) return;
+    const tests = getTests();
+    tests.splice(index, 1);
+    saveTests(tests);
+    renderLibrary();
+  }
+
+  function openModal() {
+    const name = document.getElementById('modalTestName') as HTMLInputElement;
+    const file = document.getElementById('modalFileName') as HTMLInputElement;
+    const year = document.getElementById('modalYear') as HTMLInputElement;
+    const questions = document.getElementById('modalQuestions') as HTMLInputElement;
+    const duration = document.getElementById('modalDuration') as HTMLInputElement;
+    const tag = document.getElementById('modalTag') as HTMLSelectElement;
+    if (name) name.value = '';
+    if (file) file.value = '';
+    if (year) year.value = '';
+    if (questions) questions.value = '38';
+    if (duration) duration.value = '50';
+    if (tag) tag.value = 'comprehension';
+    document.getElementById('addModal')?.classList.add('active');
+  }
+
+  function closeModal() {
+    document.getElementById('addModal')?.classList.remove('active');
+  }
+
+  function saveTest() {
+    const name = (document.getElementById('modalTestName') as HTMLInputElement)?.value.trim();
+    const file = (document.getElementById('modalFileName') as HTMLInputElement)?.value.trim();
+    if (!name || !file) {
+      alert('Please fill in the test name and filename.');
+      return;
+    }
+    const tests = getTests();
+    const yearEl = document.getElementById('modalYear') as HTMLInputElement;
+    const questionsEl = document.getElementById('modalQuestions') as HTMLInputElement;
+    const durationEl = document.getElementById('modalDuration') as HTMLInputElement;
+    const tagEl = document.getElementById('modalTag') as HTMLSelectElement;
+    tests.push({
+      id: 'test-' + Date.now(),
+      name,
+      file,
+      year: yearEl?.value.trim() || 'Year 5',
+      questions: parseInt(questionsEl?.value || '38', 10) || 38,
+      duration: parseInt(durationEl?.value || '50', 10) || 50,
+      tag: tagEl?.value || 'comprehension',
+    });
+    saveTests(tests);
+    closeModal();
+    renderLibrary();
+  }
+
+  function copyTestLink(file, btn) {
+    let base = window.location.href;
+    if (!base.endsWith('/')) {
+      base = base.replace(/\/[^/]*$/, '/');
+    }
+    const fullUrl = base + file;
+
+    function onSuccess() {
+      btn.classList.add('copied');
+      btn.innerHTML = '&#10004;';
+      showToast('Link copied: ' + fullUrl);
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = '&#128279;';
+      }, 2000);
+    }
+
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(fullUrl).then(onSuccess).catch(() => fallbackCopy(fullUrl, onSuccess));
+    } else {
+      fallbackCopy(fullUrl, onSuccess);
+    }
+  }
+
+  function fallbackCopy(text, onSuccess) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      onSuccess();
+    } catch (_) {
+      showToast('Could not copy – try right-click → copy on: ' + text);
+    }
+  }
+
+  function showToast(message) {
+    const existing = document.querySelector('.toast');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2500);
+  }
+
+  document.getElementById('addModal')?.addEventListener('click', (e) => {
+    if (e.target instanceof HTMLElement && e.target.id === 'addModal') closeModal();
+  });
+  document.getElementById('modalCancelBtn')?.addEventListener('click', closeModal);
+  document.getElementById('modalSaveBtn')?.addEventListener('click', saveTest);
+
+  renderLibrary();
+</script>

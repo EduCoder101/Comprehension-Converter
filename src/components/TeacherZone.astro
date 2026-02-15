@@ -1,0 +1,47 @@
+---
+---
+<div class="teacher-zone">
+  <div class="teacher-zone-text">
+    <h3>Teacher Tools</h3>
+    <p>Create new tests, view results, and manage your test library.</p>
+    <div class="teacher-zone-sheet-url">
+      <label for="hubSheetUrl">Google Sheets Web App URL (set once, used by all tests)</label>
+      <div class="sheet-input-row">
+        <input type="url" id="hubSheetUrl" placeholder="https://script.google.com/macros/s/.../exec" />
+        <button type="button" id="saveHubSheetUrlBtn" class="modal-btn save" style="padding:8px 18px;">Save</button>
+      </div>
+      <span id="hubSheetUrlStatus" class="sheet-status"></span>
+    </div>
+  </div>
+  <div class="teacher-zone-links">
+    <a href={`${import.meta.env.BASE_URL}test-generator.html`} class="tz-link primary">Create New Test</a>
+    <a href={`${import.meta.env.BASE_URL}results-analyser.html`} class="tz-link secondary">View Results</a>
+  </div>
+</div>
+
+<script>
+  const HUB_SHEET_URL_KEY = 'comprehension_hub_sheet_url';
+  function saveHubSheetUrl() {
+    const el = document.getElementById('hubSheetUrl');
+    const status = document.getElementById('hubSheetUrlStatus');
+    if (!el || !status) return;
+    const url = el.value.trim();
+    if (url) {
+      try { localStorage.setItem(HUB_SHEET_URL_KEY, url); } catch (_) {}
+      status.textContent = 'Saved. All tests and the Results Analyser will use this URL.';
+      status.style.color = 'var(--green)';
+    } else {
+      try { localStorage.removeItem(HUB_SHEET_URL_KEY); } catch (_) {}
+      status.textContent = 'URL cleared.';
+      status.style.color = 'var(--text-light)';
+    }
+  }
+  document.getElementById('saveHubSheetUrlBtn')?.addEventListener('click', saveHubSheetUrl);
+  (function () {
+    try {
+      const saved = localStorage.getItem(HUB_SHEET_URL_KEY);
+      const el = document.getElementById('hubSheetUrl');
+      if (saved && el) el.value = saved;
+    } catch (_) {}
+  })();
+</script>

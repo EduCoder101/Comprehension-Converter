@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Astro
+dist/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+*.log
+
+# Optional
+.claude/
+Claude Conversation.txt

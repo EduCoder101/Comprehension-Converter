@@ -1,0 +1,31 @@
+---
+---
+<section class="tools-section">
+  <div class="tools-grid">
+    <a href={`${import.meta.env.BASE_URL}test-generator.html`} class="tool-card purple">
+      <div class="tool-icon">&#9881;</div>
+      <h3>Test Generator</h3>
+      <p>Upload a reading comprehension PDF and AI will automatically create an interactive online test. Review, edit, and download.</p>
+      <div class="tool-link">Open Generator <span class="arrow">&#8594;</span></div>
+    </a>
+    <a href={`${import.meta.env.BASE_URL}results-analyser.html`} class="tool-card green">
+      <div class="tool-icon">&#128202;</div>
+      <h3>Results Analyser</h3>
+      <p>View student results across all tests. Identify tricky questions, track student progress over time, and analyse class performance.</p>
+      <div class="tool-link">Open Analyser <span class="arrow">&#8594;</span></div>
+    </a>
+    <a href="#how" class="tool-card blue" id="howItWorksLink">
+      <div class="tool-icon">&#128218;</div>
+      <h3>How It Works</h3>
+      <p>New here? Learn how to upload papers, generate tests, share with students, and view results in just a few minutes.</p>
+      <div class="tool-link">Read Guide <span class="arrow">&#8594;</span></div>
+    </a>
+  </div>
+</section>
+
+<script>
+  document.getElementById('howItWorksLink')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('howSection')?.scrollIntoView({ behavior: 'smooth' });
+  });
+</script>
