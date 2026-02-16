@@ -10,7 +10,106 @@
  *   Row 1: Headers (Student Name, Class, Score, Percentage, Q1, Q2, ...)
  *   Row 2: Question text (optional) – empty in non-Q columns; Q1, Q2... columns hold the question text
  *   Row 3+: Student results
+ *
+ * This file includes both:
+ *   doGet(e) – returns all sheet data for the Results Analyser.
+ *   doPost(e) – receives student test submissions and appends a row to the correct sheet (creates the sheet/tab if it doesn't exist).
  */
+
+/**
+ * Receives student results from a test and appends a row to the sheet tab for that test.
+ * Tab name is taken from payload.testName (e.g. "asdas — 5A"). Creates the tab if it doesn't exist.
+ */
+function doPost(e) {
+  var lock = LockService.getScriptLock();
+  var gotLock = lock.tryLock(10000);
+
+  try {
+    var raw = '';
+    if (e && e.postData && e.postData.contents) raw = e.postData.contents;
+    if (!raw && e && e.parameter && e.parameter.payload) raw = e.parameter.payload;
+
+    if (!raw) {
+      return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'No payload' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    var data = JSON.parse(raw);
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+    // Tab name: use testName, sanitise for Google Sheets (max 100 chars; no \ / ? * [ ])
+    var tabName = String(data.testName || 'General')
+      .replace(/[\\\/\?\*\[\]]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .substring(0, 100);
+    if (!tabName) tabName = 'General';
+
+    var sheet = ss.getSheetByName(tabName);
+    if (!sheet) {
+      sheet = ss.insertSheet(tabName);
+    }
+
+    var totalQ = data.totalQuestions || 38;
+    var writtenQs = data.writtenQuestions || [];
+
+    if (sheet.getLastRow() === 0) {
+      var headers = ['Timestamp', 'Student Name', 'Class', 'Score', 'Percentage', 'Total Questions'];
+      for (var i = 1; i <= totalQ; i++) {
+        headers.push('Q' + i);
+      }
+      for (var w = 0; w < writtenQs.length; w++) {
+        headers.push('Q' + writtenQs[w] + ' Written Response');
+      }
+      sheet.appendRow(headers);
+      sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+      sheet.setFrozenRows(1);
+      // Optional: write question text row for Results Analyser
+      if (data.questionTexts && typeof data.questionTexts === 'object') {
+        var row2 = [];
+        for (var c = 0; c < headers.length; c++) {
+          var h = headers[c];
+          row2.push(data.questionTexts[h] || '');
+        }
+        sheet.appendRow(row2);
+      }
+    }
+
+    var answers = data.answers || {};
+    var correctAnswers = data.correctAnswers || {};
+
+    var row = [
+      new Date().toLocaleString('en-AU'),
+      data.studentName || '',
+      data.studentClass || '',
+      data.score || 0,
+      data.percentage || '0%',
+      totalQ
+    ];
+
+    for (var i = 1; i <= totalQ; i++) {
+      var ans = answers['q' + i] || '';
+      var correct = (correctAnswers['q' + i] || '').toUpperCase();
+      if (writtenQs.indexOf(i) > -1) {
+        row.push(ans ? 'See written' : '');
+      } else {
+        row.push(ans === correct ? '\u2713 ' + (ans ? ans.toUpperCase() : '') : '\u2717 ' + (ans ? ans.toUpperCase() : '\u2014') + ' (' + correct + ')');
+      }
+    }
+
+    for (var w = 0; w < writtenQs.length; w++) {
+      row.push(answers['q' + writtenQs[w]] || '');
+    }
+
+    sheet.appendRow(row);
+    return ContentService.createTextOutput(JSON.stringify({ status: 'ok' })).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: String(err) }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    if (gotLock) lock.releaseLock();
+  }
+}
 
 function doGet(e) {
   var result = getResultsData();
