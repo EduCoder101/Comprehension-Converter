@@ -745,6 +745,29 @@
 let appData = null;
 let currentTab = 'overview';
 
+/** Build sheet name -> library display name from comprehension_hub_tests, then set test.displayName for each test. */
+function applyLibraryDisplayNames(data) {
+  if (!data || !data.tests || !data.tests.length) return;
+  var libJson = null;
+  try { libJson = localStorage.getItem('comprehension_hub_tests'); } catch (e) {}
+  var library = libJson ? (function() { try { return JSON.parse(libJson); } catch (e) { return []; } })() : [];
+  var sheetToDisplayName = {};
+  for (var i = 0; i < library.length; i++) {
+    var entry = library[i];
+    var tabName = (entry.resultsTabName != null && String(entry.resultsTabName).trim() !== '') ? String(entry.resultsTabName).trim() : entry.name;
+    sheetToDisplayName[tabName] = entry.name;
+  }
+  for (var j = 0; j < data.tests.length; j++) {
+    var t = data.tests[j];
+    var sheetName = t.name;
+    if (sheetToDisplayName[sheetName]) t.displayName = sheetToDisplayName[sheetName];
+  }
+}
+
+function getTestDisplayName(test) {
+  return (test && (test.displayName != null && test.displayName !== '')) ? test.displayName : (test ? test.name : '');
+}
+
 /* ================================================================
    SETTINGS
    ================================================================ */
@@ -809,6 +832,7 @@ function loadData() {
         throw new Error('Invalid data format. Expected { tests: [...] }');
       }
       appData = data;
+      applyLibraryDisplayNames(appData);
       saveLastLoaded();
       renderAll();
     })
@@ -985,7 +1009,7 @@ function renderOverview() {
     var d4 = (dist[3] / total * 100).toFixed(1);
 
     html += '<div class="test-card" onclick="drillIntoTest(' + t + ')">';
-    html += '<div class="test-card-name">' + escapeHtml(test.name) + '</div>';
+    html += '<div class="test-card-name">' + escapeHtml(getTestDisplayName(test)) + '</div>';
     html += '<div class="test-card-arrow">&#8594;</div>';
     html += '<div class="test-card-stats">';
     html += '<div class="test-stat"><div class="test-stat-value">' + numStudents + '</div><div class="test-stat-label">Students</div></div>';
@@ -1031,7 +1055,7 @@ function renderAnalysis() {
   html += '<label for="testSelect">Select Test:</label>';
   html += '<select id="testSelect" onchange="renderTestAnalysis(this.value)">';
   for (var i = 0; i < tests.length; i++) {
-    html += '<option value="' + i + '">' + escapeHtml(tests[i].name) + '</option>';
+    html += '<option value="' + i + '">' + escapeHtml(getTestDisplayName(tests[i])) + '</option>';
   }
   html += '</select></div>';
   html += '<div id="testAnalysisBody"></div>';
@@ -1045,7 +1069,7 @@ function renderTestAnalysis(idx) {
   var test = appData.tests[idx];
   if (!test) return;
 
-  document.getElementById('analysisPrintTitle').textContent = test.name + ' - Analysis Report';
+  document.getElementById('analysisPrintTitle').textContent = getTestDisplayName(test) + ' - Analysis Report';
 
   var headers = test.headers || [];
   var rows = test.rows || [];
@@ -1364,7 +1388,7 @@ function renderTracker() {
 
       studentMap[name].tests.push({
         testIndex: t,
-        testName: tests[t].name,
+        testName: getTestDisplayName(tests[t]),
         pct: pctIdx >= 0 ? parsePercentage(rows[r][pctIdx]) : 0,
         score: scoreIdx >= 0 ? parseScore(rows[r][scoreIdx]) : 0,
         timestamp: tsIdx >= 0 ? String(rows[r][tsIdx]) : ''
@@ -1665,14 +1689,14 @@ function renderClassSummary() {
 
       classScores.push({ name: name, pct: pct });
       if (!classStudents[name]) classStudents[name] = [];
-      classStudents[name].push({ testName: tests[t].name, pct: pct });
+      classStudents[name].push({ testName: getTestDisplayName(tests[t]), pct: pct });
     }
 
     if (classScores.length > 0) {
       var sum = 0;
       for (var i = 0; i < classScores.length; i++) sum += classScores[i].pct;
       testAverages.push({
-        testName: tests[t].name,
+        testName: getTestDisplayName(tests[t]),
         avg: sum / classScores.length,
         count: classScores.length
       });

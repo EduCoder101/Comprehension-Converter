@@ -426,6 +426,12 @@
     font-weight: 700;
     margin-bottom: 20px;
   }
+  .modal-hint {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin: -4px 0 8px 0;
+  }
   .modal label {
     display: block;
     font-weight: 600;
@@ -699,6 +705,9 @@
     <h2>Add Test to Library</h2>
     <label>Test Name</label>
     <input type="text" id="modalTestName" placeholder="e.g. NAPLAN 2016 Year 5 Reading">
+    <span class="modal-hint">Use the same name as the results tab in your spreadsheet so the Analyser can match results.</span>
+    <label>Results tab name (optional)</label>
+    <input type="text" id="modalResultsTabName" placeholder="e.g. NAPLAN 2016 Year 5 Reading — leave blank if same as Test Name">
     <label>HTML Filename</label>
     <input type="text" id="modalFileName" placeholder="e.g. naplan-2016-reading-yr5.html">
     <label>Year Level</label>
@@ -729,6 +738,7 @@ const DEFAULT_TESTS = [
   {
     id: 'naplan-2016',
     name: 'NAPLAN 2016 Reading Comprehension',
+    resultsTabName: 'NAPLAN 2016 Year 5 Reading',
     file: 'NAPLAN 2016 Reading Comprehension.html',
     year: 'Year 5',
     questions: 38,
@@ -738,6 +748,7 @@ const DEFAULT_TESTS = [
   {
     id: 'naplan-2012',
     name: 'NAPLAN 2012 Reading Comprehension',
+    resultsTabName: 'Year 5 Reading Magazine 2012',
     file: 'NAPLAN 2012 Reading Comprehension.html',
     year: 'Year 5',
     questions: 38,
@@ -747,6 +758,7 @@ const DEFAULT_TESTS = [
   {
     id: 'naplan-2025',
     name: 'NAPLAN 2025 Reading Comprehension',
+    resultsTabName: 'YEAR 5 READING',
     file: 'NAPLAN 2025 Reading Comprehension.html',
     year: 'Year 5',
     questions: 38,
@@ -826,6 +838,7 @@ function deleteTest(index) {
 
 function openModal() {
   document.getElementById('modalTestName').value = '';
+  document.getElementById('modalResultsTabName').value = '';
   document.getElementById('modalFileName').value = '';
   document.getElementById('modalYear').value = '';
   document.getElementById('modalQuestions').value = '38';
@@ -841,13 +854,14 @@ function closeModal() {
 function saveTest() {
   const name = document.getElementById('modalTestName').value.trim();
   const file = document.getElementById('modalFileName').value.trim();
+  const resultsTabName = document.getElementById('modalResultsTabName').value.trim();
   if (!name || !file) {
     alert('Please fill in the test name and filename.');
     return;
   }
 
   const tests = getTests();
-  tests.push({
+  const entry = {
     id: 'test-' + Date.now(),
     name: name,
     file: file,
@@ -855,7 +869,9 @@ function saveTest() {
     questions: parseInt(document.getElementById('modalQuestions').value) || 38,
     duration: parseInt(document.getElementById('modalDuration').value) || 50,
     tag: document.getElementById('modalTag').value
-  });
+  };
+  if (resultsTabName) entry.resultsTabName = resultsTabName;
+  tests.push(entry);
   saveTests(tests);
   closeModal();
   renderLibrary();
