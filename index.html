@@ -278,6 +278,16 @@
     margin-bottom: 12px;
     opacity: 0.5;
   }
+  .reset-library-btn {
+    background: none;
+    border: none;
+    color: var(--blue);
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+  }
+  .reset-library-btn:hover { color: #3d7aee; }
 
   /* HOW IT WORKS */
   .how-section {
@@ -610,6 +620,7 @@
     <div class="section-header">
       <h2>Test Library</h2>
       <p>All your reading comprehension tests in one place. Click to start a test.</p>
+      <p style="margin-top:8px;"><button type="button" onclick="resetLibraryToDefault()" class="reset-library-btn">Reset to default list</button> Use this if you renamed files or the library is out of date.</p>
     </div>
 
     <div class="library-grid" id="libraryGrid">
@@ -711,9 +722,27 @@
 
 const DEFAULT_TESTS = [
   {
-    id: 'naplan-2016-yr5',
-    name: 'NAPLAN 2016 Year 5 Reading',
-    file: 'naplan-2016-reading-yr5.html',
+    id: 'naplan-2016',
+    name: 'NAPLAN 2016 Reading Comprehension',
+    file: 'NAPLAN 2016 Reading Comprehension.html',
+    year: 'Year 5',
+    questions: 38,
+    duration: 50,
+    tag: 'naplan'
+  },
+  {
+    id: 'naplan-2012',
+    name: 'NAPLAN 2012 Reading Comprehension',
+    file: 'NAPLAN 2012 Reading Comprehension.html',
+    year: 'Year 5',
+    questions: 38,
+    duration: 50,
+    tag: 'naplan'
+  },
+  {
+    id: 'naplan-2025',
+    name: 'NAPLAN 2025 Reading Comprehension',
+    file: 'NAPLAN 2025 Reading Comprehension.html',
     year: 'Year 5',
     questions: 38,
     duration: 50,
@@ -726,9 +755,17 @@ function getTests() {
   if (saved) {
     try { return JSON.parse(saved); } catch(e) {}
   }
-  // First visit: seed with the default test
+  // First visit: seed with the default list
   localStorage.setItem('comprehension_hub_tests', JSON.stringify(DEFAULT_TESTS));
   return DEFAULT_TESTS;
+}
+
+function resetLibraryToDefault() {
+  if (!confirm('Replace your saved test list with the default list? (Your added tests will be removed.)')) return;
+  localStorage.removeItem('comprehension_hub_tests');
+  localStorage.setItem('comprehension_hub_tests', JSON.stringify(DEFAULT_TESTS));
+  renderLibrary();
+  if (typeof showToast === 'function') showToast('Library reset to default list.');
 }
 
 function saveTests(tests) {
