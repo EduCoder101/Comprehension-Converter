@@ -278,16 +278,19 @@
     margin-bottom: 12px;
     opacity: 0.5;
   }
+  .reset-library-row { margin-top: 10px; }
   .reset-library-btn {
-    background: none;
+    background: var(--blue);
+    color: white;
     border: none;
-    color: var(--blue);
     font-size: 0.9rem;
+    font-weight: 600;
     cursor: pointer;
-    text-decoration: underline;
-    padding: 0;
+    padding: 8px 16px;
+    border-radius: 8px;
   }
-  .reset-library-btn:hover { color: #3d7aee; }
+  .reset-library-btn:hover { background: #3d7aee; }
+  .reset-library-hint { margin-left: 8px; font-size: 0.85rem; color: var(--text-light); }
 
   /* HOW IT WORKS */
   .how-section {
@@ -505,9 +508,11 @@
   .card-actions {
     position: absolute;
     top: 12px;
+    left: 12px;
     right: 12px;
     display: none;
-    gap: 6px;
+    justify-content: space-between;
+    gap: 12px;
     z-index: 10;
   }
   .library-card-wrapper:hover .card-actions { display: flex; }
@@ -620,7 +625,7 @@
     <div class="section-header">
       <h2>Test Library</h2>
       <p>All your reading comprehension tests in one place. Click to start a test.</p>
-      <p style="margin-top:8px;"><button type="button" onclick="resetLibraryToDefault()" class="reset-library-btn">Reset to default list</button> Use this if you renamed files or the library is out of date.</p>
+      <p class="reset-library-row"><button type="button" onclick="resetLibraryToDefault()" class="reset-library-btn">Reset to default list</button> <span class="reset-library-hint">Use this if you renamed files or the library is out of date.</span></p>
     </div>
 
     <div class="library-grid" id="libraryGrid">
