@@ -2290,43 +2290,57 @@ function sendToSheets(score, percentage, total) {
 function submitViaForm(url, payload, statusEl, score, percentage, total) {
   saveLocally(score, percentage, total);
 
-  var iframe = document.getElementById('test_submit_frame');
-  if (!iframe) {
-    iframe = document.createElement('iframe');
-    iframe.id = 'test_submit_frame';
-    iframe.name = 'test_submit_frame';
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-  }
+  statusEl.className = 'sheets-status sending';
+  statusEl.textContent = 'Sending results to your teacher...';
 
-  var form = document.createElement('form');
-  form.method = 'POST';
-  form.action = url;
-  form.target = 'test_submit_frame';
-  form.style.display = 'none';
-
-  var input = document.createElement('input');
-  input.type = 'hidden';
-  input.name = 'payload';
-  input.value = JSON.stringify(payload);
-  form.appendChild(input);
-
-  document.body.appendChild(form);
-  form.submit();
-
+  // Prefer fetch so we can show real success/error from the server
   fetch(url, {
     method: 'POST',
     redirect: 'follow',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify(payload)
-  }).catch(function() {});
-
-  setTimeout(function() {
-    statusEl.className = 'sheets-status success';
-    statusEl.textContent = 'Results sent to your teacher!';
-  }, 2000);
-
-  setTimeout(function() { if (form.parentNode) form.parentNode.removeChild(form); }, 3000);
+  }).then(function(res) { return res.text().then(function(text) { return { ok: res.ok, status: res.status, text: text }; }); })
+    .then(function(r) {
+      try {
+        var data = r.text ? JSON.parse(r.text) : {};
+        if (data.status === 'ok') {
+          statusEl.className = 'sheets-status success';
+          statusEl.textContent = 'Results sent to your teacher!';
+          return;
+        }
+        statusEl.className = 'sheets-status error';
+        statusEl.textContent = 'Server error: ' + (data.message || r.text || 'Unknown');
+      } catch (e) {
+        statusEl.className = 'sheets-status error';
+        statusEl.textContent = r.status === 200 ? 'Results may have been sent; check the spreadsheet.' : 'Connection failed (' + r.status + '). Check the Web App URL and deployment access.';
+      }
+    })
+    .catch(function() {
+      // Fallback: form submit (no response feedback); user can check the sheet
+      var iframe = document.getElementById('test_submit_frame');
+      if (!iframe) {
+        iframe = document.createElement('iframe');
+        iframe.id = 'test_submit_frame';
+        iframe.name = 'test_submit_frame';
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+      }
+      var form = document.createElement('form');
+      form.method = 'POST';
+      form.action = url;
+      form.target = 'test_submit_frame';
+      form.style.display = 'none';
+      var input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'payload';
+      input.value = JSON.stringify(payload);
+      form.appendChild(input);
+      document.body.appendChild(form);
+      form.submit();
+      statusEl.className = 'sheets-status success';
+      statusEl.textContent = 'Results sent (if the connection worked, they will appear in the spreadsheet).';
+      setTimeout(function() { if (form.parentNode) form.parentNode.removeChild(form); }, 3000);
+    });
 }
 
 function saveLocally(score, percentage, total) {
