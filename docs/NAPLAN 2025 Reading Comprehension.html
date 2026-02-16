@@ -42,6 +42,11 @@
     border-radius: 8px; margin-bottom: 12px; transition: border-color 0.2s;
   }
   .start-container input:focus { border-color: var(--primary-light); outline: none; }
+  .start-container select {
+    width: 100%; padding: 14px 16px; font-size: 1.1rem; border: 2px solid var(--border);
+    border-radius: 8px; margin-bottom: 12px; transition: border-color 0.2s; background: var(--card);
+  }
+  .start-container select:focus { border-color: var(--primary-light); outline: none; }
   .start-container .class-input { margin-bottom: 24px; }
 
   .btn {
@@ -242,7 +247,12 @@
     <h1>YEAR 5 READING</h1>
     <p class="subtitle">50 Minutes &mdash; 41 Questions</p>
     <input type="text" id="studentName" placeholder="Enter your full name" autofocus>
-    <input type="text" id="studentClass" class="class-input" placeholder="Enter your class (e.g. 5B)">
+    <select id="studentClass" class="class-input" aria-label="Select your class">
+      <option value="">Select your class</option>
+      <option value="5A">5A</option>
+      <option value="5EG">5EG</option>
+      <option value="5S">5S</option>
+    </select>
     <br>
     <button class="btn btn-primary" id="startBtn" onclick="startTest()" disabled>Begin Test</button>
   </div>
@@ -480,6 +490,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   nameInput.addEventListener('input', checkReady);
   classInput.addEventListener('input', checkReady);
+  classInput.addEventListener('change', checkReady);
   nameInput.addEventListener('keydown', function(e) { if (e.key === 'Enter' && !startBtn.disabled) startTest(); });
   classInput.addEventListener('keydown', function(e) { if (e.key === 'Enter' && !startBtn.disabled) startTest(); });
 

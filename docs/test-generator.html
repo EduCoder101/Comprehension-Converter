@@ -1456,6 +1456,12 @@ function generateTest() {
   const writtenNums = writtenQuestions.map(q => q.num);
   const writtenNumsJS = 'const WRITTEN_QUESTIONS = [' + writtenNums.join(',') + '];\n';
 
+  // Build question texts for Results Analyser (Q1, Q2, ... -> text)
+  const questionTexts = {};
+  questions.forEach(q => {
+    questionTexts['Q' + q.num] = (q.text || '').trim();
+  });
+
   // Build the Apps Script code generator
   const appsScriptCode = generateAppsScriptCode(questions);
 
@@ -1470,6 +1476,7 @@ function generateTest() {
     answersJS,
     writtenNumsJS,
     writtenNums,
+    questionTexts,
     appsScriptCode
   });
 
@@ -1544,6 +1551,14 @@ function generateAppsScriptCode(questions) {
       sheet.appendRow(headers);
       sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
       sheet.setFrozenRows(1);
+      // Write question text row so Results Analyser can show questions when expanding
+      if (data.questionTexts && typeof data.questionTexts === 'object') {
+        var row2 = [];
+        for (var c = 0; c < headers.length; c++) {
+          row2.push(data.questionTexts[headers[c]] || '');
+        }
+        sheet.appendRow(row2);
+      }
     }
 
     var answers = data.answers || {};
@@ -1583,7 +1598,7 @@ function generateAppsScriptCode(questions) {
 }
 
 function doGet(e) {
-  // Return all sheet tab names and their data for the analyser
+  // Return all sheet tab names and their data for the analyser (row 1 = headers, row 2 = question text, row 3+ = students)
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheets = ss.getSheets();
   var result = { tests: [] };
@@ -1591,12 +1606,28 @@ function doGet(e) {
   for (var s = 0; s < sheets.length; s++) {
     var sheet = sheets[s];
     var data = sheet.getDataRange().getValues();
-    if (data.length < 2) continue;
+    if (data.length < 1) continue;
+
+    var headers = data[0];
+    var hasQuestionRow = data.length >= 2 && (data[1][0] === '' || data[1][0] === null || data[1][0] === undefined || !/\\d{1,2}[\\/\\-]\\d{1,2}/.test(String(data[1][0])));
+    var questionRow = hasQuestionRow ? data[1] : [];
+    var dataRows = hasQuestionRow ? data.slice(2) : data.slice(1);
+    var questionTexts = {};
+    for (var c = 0; c < headers.length; c++) {
+      var h = String(headers[c] || '');
+      if (/^Q\\d+$/i.test(h)) {
+        var t = questionRow[c];
+        if (t !== null && t !== undefined && String(t).trim() !== '') {
+          questionTexts[h] = String(t).trim();
+        }
+      }
+    }
 
     result.tests.push({
       name: sheet.getName(),
-      headers: data[0],
-      rows: data.slice(1)
+      headers: headers,
+      rows: dataRows,
+      questionTexts: questionTexts
     });
   }
 
@@ -1607,7 +1638,7 @@ function doGet(e) {
 }
 
 function buildTestHTML(config) {
-  const { title, duration, totalQ, totalMC, sheetsUrl, sectionsJS, answersJS, writtenNumsJS, writtenNums, appsScriptCode } = config;
+  const { title, duration, totalQ, totalMC, sheetsUrl, sectionsJS, answersJS, writtenNumsJS, writtenNums, questionTexts = {}, appsScriptCode } = config;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -1858,6 +1889,7 @@ function buildTestHTML(config) {
     <h1>${escapeHtml(title)}</h1>
     <p class="subtitle">${duration} Minutes &mdash; ${totalQ} Questions</p>
     <input type="text" id="studentName" placeholder="Enter your full name" autofocus>
+    <!-- Keep as <select> for consistency with library tests (2012, 2016, 2025); do not replace with text input -->
     <select id="studentClass" class="class-input" aria-label="Select your class">
       <option value="">Select your class</option>
       <option value="5A">5A</option>
@@ -1943,6 +1975,7 @@ const TOTAL_QUESTIONS = ${totalQ};
 const TOTAL_MC = ${totalMC};
 const TEST_DURATION = ${duration};
 const TEST_NAME = ${JSON.stringify(title)};
+const QUESTION_TEXTS = ${JSON.stringify(questionTexts)};
 
 const EMBEDDED_SHEET_URL = ${JSON.stringify(sheetsUrl)};
 
@@ -2247,7 +2280,8 @@ function sendToSheets(score, percentage, total) {
     totalQuestions: total,
     writtenQuestions: WRITTEN_QUESTIONS,
     answers: studentAnswers,
-    correctAnswers: correctAnswersForSheet
+    correctAnswers: correctAnswersForSheet,
+    questionTexts: typeof QUESTION_TEXTS !== 'undefined' ? QUESTION_TEXTS : {}
   };
 
   submitViaForm(url, payload, status, score, percentage, total);
