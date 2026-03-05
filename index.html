@@ -237,6 +237,7 @@
   }
   .tag-naplan { background: var(--blue-light); color: var(--blue); }
   .tag-comprehension { background: var(--orange-light); color: var(--orange); }
+  .tag-langconv { background: #f3e8ff; color: #7c3aed; }
   .tag-new { background: var(--pink-light); color: var(--pink); }
 
   .library-card h3 {
@@ -720,6 +721,7 @@
     <select id="modalTag">
       <option value="naplan">NAPLAN</option>
       <option value="comprehension">Comprehension</option>
+      <option value="language-conventions">Language Conventions</option>
       <option value="new">New</option>
     </select>
     <div class="modal-actions">
@@ -797,8 +799,10 @@ function renderLibrary() {
 
   tests.forEach((test, i) => {
     const tagClass = test.tag === 'naplan' ? 'tag-naplan' :
+                     test.tag === 'language-conventions' ? 'tag-langconv' :
                      test.tag === 'new' ? 'tag-new' : 'tag-comprehension';
     const tagLabel = test.tag === 'naplan' ? 'NAPLAN' :
+                     test.tag === 'language-conventions' ? 'LANG. CONV.' :
                      test.tag === 'new' ? 'NEW' : 'Comprehension';
 
     html += `<div class="library-card-wrapper">
